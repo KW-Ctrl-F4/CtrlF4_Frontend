@@ -25,7 +25,7 @@ export default function Notification({
           <button
             onClick={() => onNotificationChange("email")}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-              notifications.email ? "bg-primary-600" : "bg-gray-200"
+              notifications.email ? "bg-[rgb(255, 98, 26)]" : "bg-gray-200"
             }`}
           >
             <span
@@ -46,7 +46,7 @@ export default function Notification({
           <button
             onClick={() => onNotificationChange("push")}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-              notifications.push ? "bg-primary-600" : "bg-gray-200"
+              notifications.push ? "bg-[rgb(255, 98, 26)]" : "bg-gray-200"
             }`}
           >
             <span
@@ -67,7 +67,7 @@ export default function Notification({
           <button
             onClick={() => onNotificationChange("sms")}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-              notifications.sms ? "bg-primary-600" : "bg-gray-200"
+              notifications.sms ? "bg-[rgb(255, 98, 26)]" : "bg-gray-200"
             }`}
           >
             <span

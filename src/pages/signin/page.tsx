@@ -1,12 +1,11 @@
-
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function SignIn() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
     rememberMe: false,
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -15,7 +14,7 @@ export default function SignIn() {
     const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === "checkbox" ? checked : value,
     });
   };
 
@@ -27,7 +26,7 @@ export default function SignIn() {
     setTimeout(() => {
       setIsLoading(false);
       // 성공적으로 로그인 후 홈으로 이동
-      navigate('/');
+      navigate("/");
     }, 1500);
   };
 
@@ -37,7 +36,7 @@ export default function SignIn() {
         {/* Header */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-[rgb(255, 98, 26)] rounded-lg flex items-center justify-center">
               <i className="ri-search-line text-white text-xl"></i>
             </div>
             <span className="text-2xl font-bold text-gray-900">CtrlF4</span>
@@ -49,7 +48,10 @@ export default function SignIn() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               이메일 주소
             </label>
             <input
@@ -65,7 +67,10 @@ export default function SignIn() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               비밀번호
             </label>
             <input
@@ -90,11 +95,17 @@ export default function SignIn() {
                 onChange={handleInputChange}
                 className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
               />
-              <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-600 cursor-pointer">
+              <label
+                htmlFor="rememberMe"
+                className="ml-2 text-sm text-gray-600 cursor-pointer"
+              >
                 로그인 상태 유지
               </label>
             </div>
-            <Link to="#" className="text-sm text-primary-600 hover:text-primary-700 cursor-pointer whitespace-nowrap">
+            <Link
+              to="#"
+              className="text-sm text-primary-600 hover:text-primary-700 cursor-pointer whitespace-nowrap"
+            >
               비밀번호 찾기
             </Link>
           </div>
@@ -104,8 +115,8 @@ export default function SignIn() {
             disabled={isLoading}
             className={`w-full py-3 px-4 rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
               isLoading
-                ? 'bg-gray-400 text-white cursor-not-allowed'
-                : 'bg-primary-600 text-white hover:bg-primary-700'
+                ? "bg-gray-400 text-white cursor-not-allowed"
+                : "bg-[rgb(255, 98, 26)] text-white hover:bg-primary-700"
             }`}
           >
             {isLoading ? (
@@ -114,7 +125,7 @@ export default function SignIn() {
                 로그인 중...
               </>
             ) : (
-              '로그인'
+              "로그인"
             )}
           </button>
         </form>
@@ -144,8 +155,11 @@ export default function SignIn() {
 
         {/* Sign up link */}
         <p className="mt-8 text-center text-sm text-gray-600">
-          계정이 없으신가요?{' '}
-          <Link to="/signup" className="text-primary-600 hover:text-primary-700 font-medium cursor-pointer whitespace-nowrap">
+          계정이 없으신가요?{" "}
+          <Link
+            to="/signup"
+            className="text-primary-600 hover:text-primary-700 font-medium cursor-pointer whitespace-nowrap"
+          >
             회원가입
           </Link>
         </p>

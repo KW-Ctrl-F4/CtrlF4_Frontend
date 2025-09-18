@@ -11,7 +11,7 @@ export default function Header() {
             className="flex items-center space-x-4 cursor-pointer"
             onClick={() => navigate("/")}
           >
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-[rgb(255,98,26)] rounded-lg flex items-center justify-center">
               <i className="ri-search-line text-white text-lg"></i>
             </div>
             <span className="text-xl font-semibold text-gray-900">CtrlF4</span>

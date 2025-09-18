@@ -12,7 +12,7 @@ export default function Footer() {
       </Link>
       <Link
         to="/history"
-        className="flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors cursor-pointer whitespace-nowrap"
+        className="flex items-center px-6 py-3 bg-[rgb(255, 98, 26)] text-white rounded-lg hover:bg-primary-700 transition-colors cursor-pointer whitespace-nowrap"
       >
         <i className="ri-history-line mr-2"></i>
         분석 기록 보기

@@ -25,7 +25,7 @@ export default function Title({
         <div className="flex items-center space-x-3">
           <button
             onClick={onDownload}
-            className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors cursor-pointer whitespace-nowrap"
+            className="flex items-center px-4 py-2 bg-[rgb(255, 98, 26)] text-white rounded-lg hover:bg-primary-700 transition-colors cursor-pointer whitespace-nowrap"
           >
             <i className="ri-download-line mr-2"></i>
             리포트 다운로드

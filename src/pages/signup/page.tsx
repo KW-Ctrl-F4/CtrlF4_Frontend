@@ -1,14 +1,13 @@
-
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function SignUp() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
     agreeToTerms: false,
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -17,20 +16,20 @@ export default function SignUp() {
     const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === "checkbox" ? checked : value,
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
-      alert('비밀번호가 일치하지 않습니다.');
+      alert("비밀번호가 일치하지 않습니다.");
       return;
     }
 
     if (!formData.agreeToTerms) {
-      alert('이용약관에 동의해주세요.');
+      alert("이용약관에 동의해주세요.");
       return;
     }
 
@@ -39,8 +38,8 @@ export default function SignUp() {
     // 회원가입 로직 시뮬레이션
     setTimeout(() => {
       setIsLoading(false);
-      alert('회원가입이 완료되었습니다!');
-      navigate('/signin');
+      alert("회원가입이 완료되었습니다!");
+      navigate("/signin");
     }, 1500);
   };
 
@@ -50,7 +49,7 @@ export default function SignUp() {
         {/* Header */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-[rgb(255, 98, 26)] rounded-lg flex items-center justify-center">
               <i className="ri-search-line text-white text-xl"></i>
             </div>
             <span className="text-2xl font-bold text-gray-900">CtrlF4</span>
@@ -62,7 +61,10 @@ export default function SignUp() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               이름
             </label>
             <input
@@ -78,7 +80,10 @@ export default function SignUp() {
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               이메일 주소
             </label>
             <input
@@ -94,7 +99,10 @@ export default function SignUp() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               비밀번호
             </label>
             <input
@@ -110,7 +118,10 @@ export default function SignUp() {
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               비밀번호 확인
             </label>
             <input
@@ -135,10 +146,17 @@ export default function SignUp() {
               required
               className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
             />
-            <label htmlFor="agreeToTerms" className="ml-2 text-sm text-gray-600 cursor-pointer">
-              <Link to="#" className="text-primary-600 hover:text-primary-700 cursor-pointer">
+            <label
+              htmlFor="agreeToTerms"
+              className="ml-2 text-sm text-gray-600 cursor-pointer"
+            >
+              <Link
+                to="#"
+                className="text-primary-600 hover:text-primary-700 cursor-pointer"
+              >
                 이용약관
-              </Link>에 동의합니다
+              </Link>
+              에 동의합니다
             </label>
           </div>
 
@@ -147,8 +165,8 @@ export default function SignUp() {
             disabled={isLoading}
             className={`w-full py-3 px-4 rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
               isLoading
-                ? 'bg-gray-400 text-white cursor-not-allowed'
-                : 'bg-primary-600 text-white hover:bg-primary-700'
+                ? "bg-gray-400 text-white cursor-not-allowed"
+                : "bg-[rgb(255, 98, 26)] text-white hover:bg-primary-700"
             }`}
           >
             {isLoading ? (
@@ -157,7 +175,7 @@ export default function SignUp() {
                 가입 중...
               </>
             ) : (
-              '회원가입'
+              "회원가입"
             )}
           </button>
         </form>
@@ -187,8 +205,11 @@ export default function SignUp() {
 
         {/* Sign in link */}
         <p className="mt-8 text-center text-sm text-gray-600">
-          이미 계정이 있으신가요?{' '}
-          <Link to="/signin" className="text-primary-600 hover:text-primary-700 font-medium cursor-pointer whitespace-nowrap">
+          이미 계정이 있으신가요?{" "}
+          <Link
+            to="/signin"
+            className="text-primary-600 hover:text-primary-700 font-medium cursor-pointer whitespace-nowrap"
+          >
             로그인
           </Link>
         </p>

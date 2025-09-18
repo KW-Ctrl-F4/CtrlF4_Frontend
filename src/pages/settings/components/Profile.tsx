@@ -43,7 +43,7 @@ export default function Profile({
         <div className="pt-4">
           <button
             type="submit"
-            className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors cursor-pointer whitespace-nowrap"
+            className="px-6 py-3 bg-[rgb(255, 98, 26)] text-white rounded-lg hover:bg-primary-700 transition-colors cursor-pointer whitespace-nowrap"
           >
             저장하기
           </button>

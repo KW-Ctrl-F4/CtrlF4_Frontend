@@ -23,7 +23,7 @@ export default function PersonaQuestions({
         </p>
         <div className="w-full bg-gray-200 rounded-full h-2 mt-4">
           <div
-            className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+            className="bg-[rgb(255, 98, 26)] h-2 rounded-full transition-all duration-300"
             style={{
               width: `${
                 ((currentQuestionIndex + 1) / PERSONA_QUESTIONS.length) * 100
