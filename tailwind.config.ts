@@ -6,7 +6,7 @@ export default {
       colors: {
         primary: {
           50: "#fff7ed",
-          100: "#ffedd5",
+          100: "#ffebd5",
           200: "#fed7aa",
           300: "#fdba74",
           400: "#fb923c",
@@ -15,6 +15,9 @@ export default {
           700: "#c2410c",
           800: "#9a3412",
           900: "#7c2d12",
+        },
+        orange: {
+          50: "#fff9f1",
         },
       },
     },
