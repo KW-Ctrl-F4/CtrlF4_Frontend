@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+
 interface HistoryItemProps {
   title: string;
   uploadDate: string;
@@ -17,8 +19,13 @@ export default function HistoryItem({
   onDownload,
   onDelete,
 }: HistoryItemProps) {
+  const navigate = useNavigate();
+
   return (
-    <div className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+    <div
+      className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+      onClick={() => navigate("/result")}
+    >
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center space-x-3 mb-2">
