@@ -36,7 +36,7 @@ export default function SignIn() {
         {/* Header */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-[rgb(255, 98, 26)] rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
               <i className="ri-search-line text-white text-xl"></i>
             </div>
             <span className="text-2xl font-bold text-gray-900">CtrlF4</span>
@@ -116,7 +116,7 @@ export default function SignIn() {
             className={`w-full py-3 px-4 rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
               isLoading
                 ? "bg-gray-400 text-white cursor-not-allowed"
-                : "bg-[rgb(255, 98, 26)] text-white hover:bg-primary-700"
+                : "bg-primary-600 text-white hover:bg-primary-700"
             }`}
           >
             {isLoading ? (

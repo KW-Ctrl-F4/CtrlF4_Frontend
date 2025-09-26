@@ -6,6 +6,7 @@ import SignUp from "../pages/signup/page";
 import History from "../pages/history/page";
 import Settings from "../pages/settings/page";
 import Result from "../pages/result/page";
+import EmailVerification from "../pages/email-verification/page";
 
 const routes: RouteObject[] = [
   {
@@ -19,6 +20,10 @@ const routes: RouteObject[] = [
   {
     path: "/signup",
     element: <SignUp />,
+  },
+  {
+    path: "/email-verification",
+    element: <EmailVerification />,
   },
   {
     path: "/history",
