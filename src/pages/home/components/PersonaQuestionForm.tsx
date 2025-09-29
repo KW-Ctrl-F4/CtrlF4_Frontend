@@ -47,7 +47,7 @@ export default function PersonaQuestionForm({
           disabled={!answer.trim()}
           className={`px-8 py-3 rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
             answer.trim()
-              ? "bg-[rgb(255, 98, 26)] text-white hover:bg-primary-700"
+              ? "bg-primary-600 text-white hover:bg-primary-700"
               : "bg-gray-300 text-gray-500 cursor-not-allowed"
           }`}
         >
