@@ -3,6 +3,7 @@ interface AnalyticsProps {
 }
 
 export default function Analytics({ progress }: AnalyticsProps) {
+  const clampedProgress = Math.max(0, Math.min(100, progress));
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8">
       <div className="text-center">
@@ -22,12 +23,12 @@ export default function Analytics({ progress }: AnalyticsProps) {
         <div className="max-w-md mx-auto mb-6">
           <div className="flex justify-between text-sm text-gray-600 mb-2">
             <span>진행률</span>
-            <span>{Math.round(progress)}%</span>
+            <span>{Math.round(clampedProgress)}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-4">
             <div
               className="bg-gradient-to-r from-primary-500 to-primary-600 h-4 rounded-full transition-all duration-500 ease-out"
-              style={{ width: `${progress}%` }}
+              style={{ width: `${clampedProgress}%` }}
             ></div>
           </div>
         </div>
@@ -37,17 +38,17 @@ export default function Analytics({ progress }: AnalyticsProps) {
           <div className="space-y-3">
             <div
               className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                progress >= 20
+                clampedProgress >= 20
                   ? "bg-green-50 text-green-800"
                   : "bg-gray-50 text-gray-600"
               }`}
             >
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                  progress >= 20 ? "bg-green-200" : "bg-gray-200"
+                  clampedProgress >= 20 ? "bg-green-200" : "bg-gray-200"
                 }`}
               >
-                {progress >= 20 ? (
+                {clampedProgress >= 20 ? (
                   <i className="ri-check-line text-sm"></i>
                 ) : (
                   <i className="ri-loader-4-line text-sm animate-spin"></i>
@@ -58,17 +59,17 @@ export default function Analytics({ progress }: AnalyticsProps) {
 
             <div
               className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                progress >= 50
+                clampedProgress >= 50
                   ? "bg-green-50 text-green-800"
                   : "bg-gray-50 text-gray-600"
               }`}
             >
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                  progress >= 50 ? "bg-green-200" : "bg-gray-200"
+                  clampedProgress >= 50 ? "bg-green-200" : "bg-gray-200"
                 }`}
               >
-                {progress >= 50 ? (
+                {clampedProgress >= 50 ? (
                   <i className="ri-check-line text-sm"></i>
                 ) : (
                   <i className="ri-loader-4-line text-sm animate-spin"></i>
@@ -79,17 +80,17 @@ export default function Analytics({ progress }: AnalyticsProps) {
 
             <div
               className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                progress >= 80
+                clampedProgress >= 80
                   ? "bg-green-50 text-green-800"
                   : "bg-gray-50 text-gray-600"
               }`}
             >
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                  progress >= 80 ? "bg-green-200" : "bg-gray-200"
+                  clampedProgress >= 80 ? "bg-green-200" : "bg-gray-200"
                 }`}
               >
-                {progress >= 80 ? (
+                {clampedProgress >= 80 ? (
                   <i className="ri-check-line text-sm"></i>
                 ) : (
                   <i className="ri-loader-4-line text-sm animate-spin"></i>
@@ -100,17 +101,17 @@ export default function Analytics({ progress }: AnalyticsProps) {
 
             <div
               className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                progress >= 100
+                clampedProgress >= 100
                   ? "bg-green-50 text-green-800"
                   : "bg-gray-50 text-gray-600"
               }`}
             >
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                  progress >= 100 ? "bg-green-200" : "bg-gray-200"
+                  clampedProgress >= 100 ? "bg-green-200" : "bg-gray-200"
                 }`}
               >
-                {progress >= 100 ? (
+                {clampedProgress >= 100 ? (
                   <i className="ri-check-line text-sm"></i>
                 ) : (
                   <i className="ri-loader-4-line text-sm animate-spin"></i>
