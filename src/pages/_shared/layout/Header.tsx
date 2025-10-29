@@ -1,7 +1,9 @@
 import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export default function Header() {
   const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuth();
 
   return (
     <header className="bg-white shadow-sm border-b">
@@ -17,42 +19,55 @@ export default function Header() {
             <span className="text-xl font-semibold text-gray-900">CtrlF4</span>
           </div>
           <div className="flex items-center space-x-6">
-            <NavLink
-              to="/signin"
-              className={({ isActive }) =>
-                `cursor-pointer whitespace-nowrap transition-colors duration-200 ${
-                  isActive
-                    ? "text-primary-600"
-                    : "text-gray-600 hover:text-gray-900"
-                }`
-              }
-            >
-              Sign In
-            </NavLink>
-            <NavLink
-              to="/history"
-              className={({ isActive }) =>
-                `cursor-pointer whitespace-nowrap transition-colors duration-200 ${
-                  isActive
-                    ? "text-primary-600"
-                    : "text-gray-600 hover:text-gray-900"
-                }`
-              }
-            >
-              History
-            </NavLink>
-            <NavLink
-              to="/settings"
-              className={({ isActive }) =>
-                `cursor-pointer whitespace-nowrap transition-colors duration-200 ${
-                  isActive
-                    ? "text-primary-600"
-                    : "text-gray-600 hover:text-gray-900"
-                }`
-              }
-            >
-              Settings
-            </NavLink>
+            {!isAuthenticated ? (
+              <NavLink
+                to="/signin"
+                className={({ isActive }) =>
+                  `cursor-pointer whitespace-nowrap transition-colors duration-200 ${
+                    isActive
+                      ? "text-primary-600"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`
+                }
+              >
+                Sign In
+              </NavLink>
+            ) : (
+              <>
+                <NavLink
+                  to="/history"
+                  className={({ isActive }) =>
+                    `cursor-pointer whitespace-nowrap transition-colors duration-200 ${
+                      isActive
+                        ? "text-primary-600"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`
+                  }
+                >
+                  History
+                </NavLink>
+                <NavLink
+                  to="/settings"
+                  className={({ isActive }) =>
+                    `cursor-pointer whitespace-nowrap transition-colors duration-200 ${
+                      isActive
+                        ? "text-primary-600"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`
+                  }
+                >
+                  Settings
+                </NavLink>
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={logout}
+                    className="text-gray-600 hover:text-gray-900 cursor-pointer whitespace-nowrap transition-colors duration-200"
+                  >
+                    Logout
+                  </button>
+                </div>
+              </>
+            )}
             <button className="text-gray-600 hover:text-gray-900 cursor-pointer whitespace-nowrap transition-colors duration-200">
               Help
             </button>

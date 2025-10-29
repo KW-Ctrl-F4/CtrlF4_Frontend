@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { authAPI } from "../../hooks/auth";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function SignIn() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     rememberMe: false,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -21,13 +25,38 @@ export default function SignIn() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
 
-    // 로그인 로직 시뮬레이션
-    setTimeout(() => {
+    try {
+      // 로그인 API 호출
+      const response = await authAPI.signin({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (response.success && response.data.access_token) {
+        // Context에 토큰과 사용자 정보 저장
+        login(
+          response.data.access_token,
+          response.data.user || {
+            id: "",
+            name: "",
+            email: formData.email,
+            createdAt: "",
+            updatedAt: "",
+          }
+        );
+        // 로그인 성공 시 홈으로 이동
+        navigate("/");
+      } else {
+        // 로그인 실패 시 에러 메시지 표시
+        setError(response.message || "로그인에 실패했습니다.");
+      }
+    } catch (error) {
+      setError("로그인 중 오류가 발생했습니다.");
+    } finally {
       setIsLoading(false);
-      // 성공적으로 로그인 후 홈으로 이동
-      navigate("/");
-    }, 1500);
+    }
   };
 
   return (
@@ -44,6 +73,13 @@ export default function SignIn() {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">로그인</h1>
           <p className="text-gray-600">계정에 로그인하여 계속하세요</p>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -113,7 +149,7 @@ export default function SignIn() {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-3 px-4 rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
+            className={`w-full py-3 px-4 rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center ${
               isLoading
                 ? "bg-gray-400 text-white cursor-not-allowed"
                 : "bg-primary-600 text-white hover:bg-primary-700"
@@ -121,7 +157,7 @@ export default function SignIn() {
           >
             {isLoading ? (
               <>
-                <i className="ri-loader-4-line mr-2 animate-spin"></i>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                 로그인 중...
               </>
             ) : (
