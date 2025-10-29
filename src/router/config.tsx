@@ -22,7 +22,11 @@ const routes: RouteObject[] = [
     element: <SignUp />,
   },
   {
-    path: "/email-verification",
+    path: "/email-verification-success",
+    element: <EmailVerification />,
+  },
+  {
+    path: "/email-verification-fail",
     element: <EmailVerification />,
   },
   {
