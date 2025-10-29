@@ -35,17 +35,14 @@ export default function SignIn() {
       });
 
       if (response.success && response.data.access_token) {
+        // 백엔드에서 반환한 email, nickname을 사용해 사용자 구성
+        const userFromResponse = {
+          nickname: response.data.nickname || "",
+          email: response.data.email || formData.email,
+        };
+
         // Context에 토큰과 사용자 정보 저장
-        login(
-          response.data.access_token,
-          response.data.user || {
-            id: "",
-            name: "",
-            email: formData.email,
-            createdAt: "",
-            updatedAt: "",
-          }
-        );
+        login(response.data.access_token, userFromResponse);
         // 로그인 성공 시 홈으로 이동
         navigate("/");
       } else {

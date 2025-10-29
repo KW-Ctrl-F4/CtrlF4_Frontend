@@ -7,11 +7,8 @@ import {
 } from "react";
 
 interface User {
-  id: string;
-  name: string;
+  nickname: string;
   email: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 interface AuthContextType {

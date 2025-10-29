@@ -5,12 +5,14 @@ interface ProfileProps {
   };
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
+  isDirty: boolean;
 }
 
 export default function Profile({
   formData,
   onInputChange,
   onSubmit,
+  isDirty,
 }: ProfileProps) {
   return (
     <div>
@@ -36,14 +38,19 @@ export default function Profile({
             type="email"
             name="email"
             value={formData.email}
-            onChange={onInputChange}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            readOnly
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
           />
         </div>
         <div className="pt-4">
           <button
             type="submit"
-            className="px-6 py-3 bg-[rgb(255, 98, 26)] text-white rounded-lg hover:bg-primary-700 transition-colors cursor-pointer whitespace-nowrap"
+            disabled={!isDirty}
+            className={`px-6 py-3 rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
+              isDirty
+                ? "bg-primary-600 text-white hover:bg-primary-700"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
           >
             저장하기
           </button>

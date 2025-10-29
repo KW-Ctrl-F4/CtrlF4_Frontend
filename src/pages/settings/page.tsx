@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "../_shared/layout/Header";
 import Sidebar from "./components/Sidebar";
 import Profile from "./components/Profile";
@@ -6,18 +6,21 @@ import Password from "./components/Password";
 import Notification from "./components/Notification";
 import Account from "./components/Account";
 import Title from "./components/Title";
+import { useAuth } from "../../contexts/AuthContext";
 
 type TabType = "profile" | "password" | "notifications" | "account";
 
 export default function Settings() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>("profile");
   const [formData, setFormData] = useState({
-    name: "김철수",
-    email: "kimcs@example.com",
+    name: "",
+    email: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
+  const [isDirty, setIsDirty] = useState(false);
   const [notifications, setNotifications] = useState({
     email: true,
     push: false,
@@ -30,6 +33,27 @@ export default function Settings() {
       [e.target.name]: e.target.value,
     });
   };
+
+  // AuthContext의 사용자 정보로 초기값 설정
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        name: (user as any).nickname ?? (user as any).name ?? "",
+        email: user.email || "",
+      }));
+    }
+  }, [user]);
+
+  // 변경 사항 감지 (이름만 편집 가능)
+  useEffect(() => {
+    if (user) {
+      const originalName = (user as any).nickname ?? (user as any).name ?? "";
+      setIsDirty(formData.name !== originalName);
+    } else {
+      setIsDirty(false);
+    }
+  }, [formData.name, user]);
 
   const handleNotificationChange = (type: keyof typeof notifications) => {
     setNotifications({
@@ -89,6 +113,7 @@ export default function Settings() {
                   formData={formData}
                   onInputChange={handleInputChange}
                   onSubmit={handleSubmit}
+                  isDirty={isDirty}
                 />
               )}
 
