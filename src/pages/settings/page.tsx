@@ -7,11 +7,12 @@ import Notification from "./components/Notification";
 import Account from "./components/Account";
 import Title from "./components/Title";
 import { useAuth } from "../../contexts/AuthContext";
+import { authAPI } from "../../hooks/auth";
 
 type TabType = "profile" | "password" | "notifications" | "account";
 
 export default function Settings() {
-  const { user } = useAuth();
+  const { user, accessToken, login } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>("profile");
   const [formData, setFormData] = useState({
     name: "",
@@ -62,10 +63,30 @@ export default function Settings() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // 여기에 실제 업데이트 로직 구현
-    alert("설정이 저장되었습니다.");
+    if (!accessToken) {
+      alert("인증 정보가 없습니다. 다시 로그인해주세요.");
+      return;
+    }
+
+    const res = await authAPI.updateNickname({
+      nickname: formData.name.trim(),
+      accessToken,
+    });
+
+    if (res.success) {
+      // Context의 사용자 정보 갱신 (토큰은 유지)
+      if (user) {
+        login(accessToken, {
+          nickname: res.data?.nickname ?? formData.name.trim(),
+          email: user.email,
+        });
+      }
+      alert(res.message || "설정이 저장되었습니다.");
+    } else {
+      alert(res.message || "닉네임 변경에 실패했습니다.");
+    }
   };
 
   const handlePasswordChange = (e: React.FormEvent) => {

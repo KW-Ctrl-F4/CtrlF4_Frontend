@@ -123,4 +123,48 @@ export const authAPI = {
       };
     }
   },
+
+  // 닉네임 변경 API (Authorization: Bearer access_token)
+  updateNickname: async ({
+    nickname,
+    accessToken,
+  }: {
+    nickname: string;
+    accessToken: string;
+  }) => {
+    try {
+      const response = await fetch("/api/account/nickname", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ nickname }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+      return {
+        success: true,
+        message: data.message || "닉네임이 변경되었습니다.",
+        data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "닉네임 변경 중 오류가 발생했습니다.",
+        error: "NETWORK_ERROR",
+      };
+    }
+  },
 };
