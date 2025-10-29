@@ -4,6 +4,7 @@ import { authAPI } from "../../hooks/auth";
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -23,6 +24,11 @@ export default function SignUp() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!formData.name.trim()) {
+      alert("이름을 입력해주세요.");
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       alert("비밀번호가 일치하지 않습니다.");
       return;
@@ -38,6 +44,7 @@ export default function SignUp() {
     try {
       // 회원가입 API 호출
       const response = await authAPI.signup({
+        nickname: formData.name,
         email: formData.email,
         password: formData.password,
       });
@@ -132,6 +139,24 @@ export default function SignUp() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              이름
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              placeholder="이름을 입력하세요"
+            />
+          </div>
+          <div>
+            <label
               htmlFor="email"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
@@ -214,7 +239,7 @@ export default function SignUp() {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-3 px-4 rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
+            className={`w-full py-3 px-4 rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center ${
               isLoading
                 ? "bg-gray-400 text-white cursor-not-allowed"
                 : "bg-primary-600 text-white hover:bg-primary-700"
@@ -222,7 +247,7 @@ export default function SignUp() {
           >
             {isLoading ? (
               <>
-                <i className="ri-loader-4-line mr-2 animate-spin"></i>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                 가입 중...
               </>
             ) : (

@@ -1,5 +1,13 @@
 export const authAPI = {
-  signup: async ({ email, password }: { email: string; password: string }) => {
+  signup: async ({
+    nickname,
+    email,
+    password,
+  }: {
+    nickname: string;
+    email: string;
+    password: string;
+  }) => {
     try {
       const response = await fetch("/api/register", {
         method: "POST",
@@ -8,6 +16,7 @@ export const authAPI = {
           Accept: "application/json",
         },
         body: JSON.stringify({
+          nickname,
           email,
           password,
         }),
