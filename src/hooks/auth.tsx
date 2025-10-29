@@ -167,4 +167,48 @@ export const authAPI = {
       };
     }
   },
+
+  // 계정 삭제 API
+  deleteAccount: async ({
+    password,
+    accessToken,
+  }: {
+    password: string;
+    accessToken: string;
+  }) => {
+    try {
+      const response = await fetch("/api/account", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+      return {
+        success: true,
+        message: data.message || "계정이 삭제되었습니다.",
+        data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "계정 삭제 중 오류가 발생했습니다.",
+        error: "NETWORK_ERROR",
+      };
+    }
+  },
 };

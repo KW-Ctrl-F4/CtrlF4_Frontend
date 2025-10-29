@@ -8,6 +8,7 @@ import Account from "./components/Account";
 import Title from "./components/Title";
 import { useAuth } from "../../contexts/AuthContext";
 import { authAPI } from "../../hooks/auth";
+import DeleteAccountModal from "./components/DeleteAccountModal";
 
 type TabType = "profile" | "password" | "notifications" | "account";
 
@@ -27,6 +28,8 @@ export default function Settings() {
     push: false,
     sms: false,
   });
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -106,11 +109,34 @@ export default function Settings() {
   };
 
   const handleDeleteAccount = () => {
-    if (
-      confirm("정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")
-    ) {
-      // 여기에 계정 삭제 로직 구현
-      alert("계정이 삭제되었습니다.");
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async (password: string) => {
+    if (!accessToken) {
+      alert("인증 정보가 없습니다. 다시 로그인해주세요.");
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const res = await authAPI.deleteAccount({
+        password,
+        accessToken,
+      });
+
+      if (res.success) {
+        alert(res.message || "계정이 삭제되었습니다.");
+        // 로그아웃 처리 (AuthContext의 logout이 홈으로 리다이렉트)
+        window.location.href = "/";
+      } else {
+        alert(res.message || "계정 삭제에 실패했습니다.");
+      }
+    } catch (error) {
+      alert("계정 삭제 중 오류가 발생했습니다.");
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteModalOpen(false);
     }
   };
 
@@ -160,6 +186,14 @@ export default function Settings() {
           </div>
         </div>
       </main>
+
+      {/* Delete Account Modal */}
+      <DeleteAccountModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }
