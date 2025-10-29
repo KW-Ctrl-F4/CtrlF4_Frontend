@@ -6,7 +6,8 @@ import SignUp from "../pages/signup/page";
 import History from "../pages/history/page";
 import Settings from "../pages/settings/page";
 import Result from "../pages/result/page";
-import EmailVerification from "../pages/email-verification/page";
+import EmailSuccess from "../pages/email-verification/email-success";
+import EmailFailure from "../pages/email-verification/email-failure";
 
 const routes: RouteObject[] = [
   {
@@ -23,11 +24,11 @@ const routes: RouteObject[] = [
   },
   {
     path: "/email-verification-success",
-    element: <EmailVerification />,
+    element: <EmailSuccess />,
   },
   {
     path: "/email-verification-fail",
-    element: <EmailVerification />,
+    element: <EmailFailure />,
   },
   {
     path: "/history",

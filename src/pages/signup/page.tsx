@@ -39,7 +39,9 @@ export default function SignUp() {
     setTimeout(() => {
       setIsLoading(false);
       // 이메일 인증 페이지로 이동 (이메일 주소를 파라미터로 전달)
-      navigate(`/email-verification?email=${encodeURIComponent(formData.email)}`);
+      navigate(
+        `/email-verification?email=${encodeURIComponent(formData.email)}`
+      );
     }, 1500);
   };
 
@@ -179,29 +181,6 @@ export default function SignUp() {
             )}
           </button>
         </form>
-
-        {/* Social Sign up */}
-        <div className="mt-8">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">또는</span>
-            </div>
-          </div>
-
-          <div className="mt-6 grid grid-cols-2 gap-3">
-            <button className="w-full px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer whitespace-nowrap">
-              <i className="ri-google-fill text-red-500 mr-2"></i>
-              Google
-            </button>
-            <button className="w-full px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer whitespace-nowrap">
-              <i className="ri-github-fill text-gray-900 mr-2"></i>
-              GitHub
-            </button>
-          </div>
-        </div>
 
         {/* Sign in link */}
         <p className="mt-8 text-center text-sm text-gray-600">
