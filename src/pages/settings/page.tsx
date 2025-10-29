@@ -30,6 +30,8 @@ export default function Settings() {
   });
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -73,39 +75,79 @@ export default function Settings() {
       return;
     }
 
-    const res = await authAPI.updateNickname({
-      nickname: formData.name.trim(),
-      accessToken,
-    });
+    setIsUpdatingProfile(true);
+    try {
+      const res = await authAPI.updateNickname({
+        nickname: formData.name.trim(),
+        accessToken,
+      });
 
-    if (res.success) {
-      // Context의 사용자 정보 갱신 (토큰은 유지)
-      if (user) {
-        login(accessToken, {
-          nickname: res.data?.nickname ?? formData.name.trim(),
-          email: user.email,
-        });
+      if (res.success) {
+        // Context의 사용자 정보 갱신 (토큰은 유지)
+        if (user) {
+          login(accessToken, {
+            nickname: res.data?.nickname ?? formData.name.trim(),
+            email: user.email,
+          });
+        }
+        alert(res.message || "설정이 저장되었습니다.");
+      } else {
+        alert(res.message || "닉네임 변경에 실패했습니다.");
       }
-      alert(res.message || "설정이 저장되었습니다.");
-    } else {
-      alert(res.message || "닉네임 변경에 실패했습니다.");
+    } catch (error) {
+      alert("닉네임 변경 중 오류가 발생했습니다.");
+    } finally {
+      setIsUpdatingProfile(false);
     }
   };
 
-  const handlePasswordChange = (e: React.FormEvent) => {
+  const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.currentPassword.trim()) {
+      alert("현재 비밀번호를 입력해주세요.");
+      return;
+    }
+
+    if (!formData.newPassword.trim()) {
+      alert("새 비밀번호를 입력해주세요.");
+      return;
+    }
+
     if (formData.newPassword !== formData.confirmPassword) {
       alert("새 비밀번호가 일치하지 않습니다.");
       return;
     }
-    // 여기에 비밀번호 변경 로직 구현
-    alert("비밀번호가 변경되었습니다.");
-    setFormData({
-      ...formData,
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
+
+    if (!accessToken) {
+      alert("인증 정보가 없습니다. 다시 로그인해주세요.");
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      const res = await authAPI.changePassword({
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
+        accessToken,
+      });
+
+      if (res.success) {
+        alert(res.message || "비밀번호가 변경되었습니다.");
+        setFormData({
+          ...formData,
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      } else {
+        alert(res.message || "비밀번호 변경에 실패했습니다.");
+      }
+    } catch (error) {
+      alert("비밀번호 변경 중 오류가 발생했습니다.");
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   const handleDeleteAccount = () => {
@@ -161,6 +203,7 @@ export default function Settings() {
                   onInputChange={handleInputChange}
                   onSubmit={handleSubmit}
                   isDirty={isDirty}
+                  isLoading={isUpdatingProfile}
                 />
               )}
 
@@ -169,6 +212,7 @@ export default function Settings() {
                   formData={formData}
                   onInputChange={handleInputChange}
                   onSubmit={handlePasswordChange}
+                  isLoading={isChangingPassword}
                 />
               )}
 

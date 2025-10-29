@@ -6,6 +6,7 @@ interface ProfileProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
   isDirty: boolean;
+  isLoading: boolean;
 }
 
 export default function Profile({
@@ -13,6 +14,7 @@ export default function Profile({
   onInputChange,
   onSubmit,
   isDirty,
+  isLoading,
 }: ProfileProps) {
   return (
     <div>
@@ -45,14 +47,21 @@ export default function Profile({
         <div className="pt-4">
           <button
             type="submit"
-            disabled={!isDirty}
-            className={`px-6 py-3 rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
-              isDirty
+            disabled={!isDirty || isLoading}
+            className={`px-6 py-3 rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center ${
+              isDirty && !isLoading
                 ? "bg-primary-600 text-white hover:bg-primary-700"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
           >
-            저장하기
+            {isLoading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                저장 중...
+              </>
+            ) : (
+              "저장하기"
+            )}
           </button>
         </div>
       </form>

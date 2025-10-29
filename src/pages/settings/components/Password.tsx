@@ -6,12 +6,14 @@ interface PasswordProps {
   };
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
+  isLoading: boolean;
 }
 
 export default function Password({
   formData,
   onInputChange,
   onSubmit,
+  isLoading,
 }: PasswordProps) {
   return (
     <div>
@@ -59,9 +61,21 @@ export default function Password({
         <div className="pt-4">
           <button
             type="submit"
-            className="px-6 py-3 bg-[rgb(255, 98, 26)] text-white rounded-lg hover:bg-primary-700 transition-colors cursor-pointer whitespace-nowrap"
+            disabled={isLoading}
+            className={`px-6 py-3 rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center ${
+              isLoading
+                ? "bg-gray-400 text-white cursor-not-allowed"
+                : "bg-primary-600 text-white hover:bg-primary-700"
+            }`}
           >
-            비밀번호 변경
+            {isLoading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                변경 중...
+              </>
+            ) : (
+              "비밀번호 변경"
+            )}
           </button>
         </div>
       </form>

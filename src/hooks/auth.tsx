@@ -211,4 +211,53 @@ export const authAPI = {
       };
     }
   },
+
+  // 비밀번호 변경 API
+  changePassword: async ({
+    currentPassword,
+    newPassword,
+    accessToken,
+  }: {
+    currentPassword: string;
+    newPassword: string;
+    accessToken: string;
+  }) => {
+    try {
+      const response = await fetch("/api/change-password", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+      return {
+        success: true,
+        message: data.message || "비밀번호가 변경되었습니다.",
+        data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "비밀번호 변경 중 오류가 발생했습니다.",
+        error: "NETWORK_ERROR",
+      };
+    }
+  },
 };
