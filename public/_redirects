@@ -1,0 +1,6 @@
+# API Proxy - 모든 /api/* 요청을 백엔드 API Gateway로 프록시
+/api/* https://bmchkcoxyd.execute-api.ap-northeast-2.amazonaws.com/Prod/:splat 200
+
+# SPA 라우팅 - React Router를 위한 모든 경로를 index.html로 리디렉션
+/* /index.html 200
+
