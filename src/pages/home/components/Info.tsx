@@ -16,9 +16,7 @@ export default function Info() {
           <i className="ri-speed-line text-xl text-primary-600"></i>
         </div>
         <h3 className="font-semibold text-gray-900 mb-2">빠른 처리</h3>
-        <p className="text-gray-600">
-          고급 AI 기술로 신속하게 문서를 분석합니다
-        </p>
+        <p className="text-gray-600">전처리→프로브→임베딩→의도추천까지 자동으로 진행됩니다</p>
       </div>
 
       <div className="text-center p-6">
@@ -26,9 +24,7 @@ export default function Info() {
           <i className="ri-file-list-line text-xl text-primary-600"></i>
         </div>
         <h3 className="font-semibold text-gray-900 mb-2">다양한 형식</h3>
-        <p className="text-gray-600">
-          PDF, DOCX 등 다양한 문서 형식을 지원합니다
-        </p>
+        <p className="text-gray-600">PDF, DOCX 등 다양한 문서 형식을 지원합니다</p>
       </div>
     </div>
   );
