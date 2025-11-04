@@ -39,6 +39,7 @@ export default function SignIn() {
         const userFromResponse = {
           nickname: response.data.nickname || "",
           email: response.data.email || formData.email,
+          id: response.data.id || "",
         };
 
         // Context에 토큰과 사용자 정보 저장

@@ -9,6 +9,7 @@ import {
 interface User {
   nickname: string;
   email: string;
+  id: string;
 }
 
 interface AuthContextType {
@@ -44,16 +45,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const checkAuthStatus = async () => {
       try {
         // refresh_token이 있는지 확인하는 API 호출
-        const response = await fetch("/api/verify-token", {
-          method: "GET",
+        const response = await fetch("/api/refresh", {
+          method: "POST",
           credentials: "include", // 쿠키 포함
         });
 
         if (response.ok) {
           const data = await response.json();
-          if (data.access_token && data.user) {
+          if (data.access_token && data.nickname && data.email && data.id) {
             setAccessToken(data.access_token);
-            setUser(data.user);
+            setUser({
+              nickname: data.nickname,
+              email: data.email,
+              id: data.id,
+            });
           }
         }
       } catch (error) {
@@ -65,6 +70,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     checkAuthStatus();
   }, []);
+
+  useEffect(() => {
+    console.log(user);
+  }, [user]);
 
   const login = (token: string, userData: User) => {
     setAccessToken(token);

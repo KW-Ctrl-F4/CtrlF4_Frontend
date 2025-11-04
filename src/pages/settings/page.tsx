@@ -88,6 +88,7 @@ export default function Settings() {
           login(accessToken, {
             nickname: res.data?.nickname ?? formData.name.trim(),
             email: user.email,
+            id: user.id,
           });
         }
         alert(res.message || "설정이 저장되었습니다.");
