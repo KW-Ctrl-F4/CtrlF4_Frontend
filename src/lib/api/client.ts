@@ -1,116 +1,148 @@
-import http from "./http";
+import { http } from "./http";
 import type {
-	PresignRequest,
-	PresignResponse,
-	PreprocessResponse,
-	ProbeResponse,
-	EmbeddingResponse,
+    PresignRequest,
+    PresignResponse,
+    PreprocessResponse,
+    ProbeResponse,
+    EmbeddingResponse,
     SuggestResponse,
-	CustomIntentsRequest,
-	SessionCreateRequest,
-	SessionCreateResponse,
+    CustomIntentsRequest,
+    SessionCreateRequest,
+    SessionCreateResponse,
     RunStartResponse,
-	RunResultsResponse,
+    RunResultsResponse,
 } from "./types";
 
-// 문서 업로드 사전 서명 URL 발급 (Lambda 요구 스키마 대응)
-// 문서 업로드 presign
+// =========================
+// PRESIGN (문서 업로드 URL 발급)
+// =========================
+
 export async function postDocumentsPresign(body: PresignRequest) {
     const res = await http.post<PresignResponse>(
-      "/documents",
-      {
-        operation: "put",
-        fileName: body.fileName,        // ✅ 수정됨
-        contentType: body.contentType,
-        userId: body.userId ?? 1,       // optional
-      },
-      { headers: { "Content-Type": "application/json" } } // ✅ 꼭 추가
+        "/documents",
+        {
+            operation: "put",
+            fileName: body.fileName,
+            contentType: body.contentType,
+            userId: body.userId ?? 1,
+        },
+        {
+            headers: { "Content-Type": "application/json" },
+        }
     );
-    return normalizePresignResponse(res.data as any);
-  }
-  
-  function normalizePresignResponse(raw: any): PresignResponse {
+
+    return normalizePresignResponse(res.data);
+}
+
+// presign 응답 정규화: uploadUrl + docId + key 필수
+function normalizePresignResponse(raw: any): PresignResponse {
     if (!raw || typeof raw !== "object") {
-      throw new Error("서버 응답 형식이 올바르지 않습니다 (presign)");
+        throw new Error("서버 응답 형식이 올바르지 않습니다 (presign)");
     }
-  
+
+    // presigned URL 후보 키
     const urlKeys = ["uploadUrl", "url", "presignedUrl", "preSignedUrl", "putUrl", "s3PutUrl"];
     const idKeys = ["docId", "documentId", "id"];
-  
+
     let uploadUrl: string | undefined;
-    for (const key of urlKeys) {
-      if (typeof raw[key] === "string") {
-        uploadUrl = raw[key];
-        break;
-      }
+    for (const k of urlKeys) {
+        if (typeof raw[k] === "string") {
+            uploadUrl = raw[k];
+            break;
+        }
     }
-  
+
     let docId: string | number | undefined;
-    for (const key of idKeys) {
-      if (raw[key] !== undefined) {
-        docId = raw[key];
-        break;
-      }
+    for (const k of idKeys) {
+        if (raw[k] !== undefined) {
+            docId = raw[k];
+            break;
+        }
     }
-  
+
     if (!uploadUrl || docId === undefined || docId === null) {
-      console.error("normalizePresignResponse error:", raw);
-      throw new Error("서버 응답에서 uploadUrl/docId를 찾을 수 없습니다");
+        console.error("normalizePresignResponse error:", raw);
+        throw new Error("서버 응답에서 uploadUrl/docId가 누락되었습니다");
     }
-  
+
+    // 🔥 핵심: key 반드시 포함
+    const key = raw.key ?? raw.s3Key ?? raw.fileName;
+    if (!key) {
+        console.error("normalizePresignResponse missing key:", raw);
+        throw new Error("presign 응답에서 key를 찾을 수 없습니다");
+    }
+
     return {
-      uploadUrl,
-      docId: String(docId), // ✅ 숫자도 문자열로 통일
+        uploadUrl,
+        docId: String(docId),
+        key,
+        fileName: raw.fileName,
+        bucket: raw.bucket,
     };
-  }
-  
-
-// 전처리
-export async function postPreprocess(docId: string) {
-	const res = await http.post<PreprocessResponse>(`/documents/${docId}/preprocess`);
-	return res.data;
 }
 
-// 프로브
+// =========================
+// PREPROCESS
+// =========================
+
+export async function postPreprocess(docId: string, s3Key: string) {
+    const res = await http.post<PreprocessResponse>(
+        `/documents/${docId}/preprocess`,
+        { s3Key }
+    );
+    return res.data;
+}
+
+// =========================
+// PROBE
+// =========================
+
 export async function postProbe(docId: string) {
-	const res = await http.post<ProbeResponse>(`/documents/${docId}/probe`);
-	return res.data;
+    const res = await http.post<ProbeResponse>(`/documents/${docId}/probe`);
+    return res.data;
 }
 
-// 임베딩
+// =========================
+// EMBEDDING
+// =========================
+
 export async function postEmbedding(docId: string) {
-	const res = await http.post<EmbeddingResponse>(`/documents/${docId}/embedding`);
-	return res.data;
+    const res = await http.post<EmbeddingResponse>(`/documents/${docId}/embedding`);
+    return res.data;
 }
 
-// 의도 추천
+// =========================
+// INTENT SUGGEST
+// =========================
+
 export async function postIntentSuggest(docId: string) {
     const res = await http.post<SuggestResponse>(`/documents/${docId}/intent/suggest`);
-	return res.data;
+    return res.data;
 }
 
-// 사용자 정의 의도 전송
+// 사용자 정의 intent 전송
 export async function postIntentCustom(docId: string, body: CustomIntentsRequest) {
-	const res = await http.post<void>(`/documents/${docId}/intent/custom`, body);
-	return res.data;
+    const res = await http.post<void>(`/documents/${docId}/intent/custom`, body);
+    return res.data;
 }
 
-// 세션 생성
+// =========================
+// SESSIONS
+// =========================
+
 export async function postSessions(body: SessionCreateRequest) {
-	const res = await http.post<SessionCreateResponse>(`/sessions`, body);
-	return res.data;
+    const res = await http.post<SessionCreateResponse>(`/sessions`, body);
+    return res.data;
 }
 
 // 실행 시작
 export async function postRun(sessionId: string) {
-	const res = await http.post<RunStartResponse>(`/sessions/${sessionId}/run`);
-	return res.data;
+    const res = await http.post<RunStartResponse>(`/sessions/${sessionId}/run`);
+    return res.data;
 }
 
-// 결과 조회
+// 실행 결과 조회
 export async function getRunResults(runId: string) {
-	const res = await http.get<RunResultsResponse>(`/runs/${runId}/results`);
-	return res.data;
+    const res = await http.get<RunResultsResponse>(`/runs/${runId}/results`);
+    return res.data;
 }
-
-

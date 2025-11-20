@@ -11,6 +11,9 @@ export interface PresignRequest {
 export interface PresignResponse {
 	uploadUrl: string;
 	docId: string;
+	key: string; 
+	fileName?: string;
+    bucket?: string;
 }
 
 export interface PreprocessResponse {

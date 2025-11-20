@@ -74,15 +74,13 @@ export function useDocumentAnalysis({
 			setError(null);
 			try {
 				// 1) presign
-				const { uploadUrl, docId } = await postDocumentsPresign({
+				const presign = await postDocumentsPresign({
 					fileName: file.name,
-					contentType: file.type || "application/octet-stream",
-				});
-				setDocId(docId);
-				setProgress(10);
+					contentType: file.type,
+				  });
 
 				// 2) S3 PUT
-				await fetch(uploadUrl, {
+				await fetch(presign.uploadUrl, {
                     method: "PUT",
                     headers: {
                       "Content-Type": file.type || "application/octet-stream",
@@ -94,20 +92,20 @@ export function useDocumentAnalysis({
 				setProgress(20);
 
 				// 3) preprocess
-				await postPreprocess(docId);
+				await postPreprocess(presign.docId, presign.key)
 				setProgress(35);
 
 
 				// 4) embedding (임베딩 먼저)
-				await postEmbedding(docId);
+				await postEmbedding(presign.docId);
 				setProgress(45);
 
 				// 5) probe (그 다음 프로브)
-				await postProbe(docId);
+				await postProbe(presign.docId);
 				setProgress(55);
 
                 // 6) intent suggest (새 스펙 대응)
-                const suggest = await postIntentSuggest(docId);
+                const suggest = await postIntentSuggest(presign.docId);
                 setSuggestedIntents(suggest?.intents ?? []);
                 setSuggestedRoles(suggest?.predictedRole ?? []);
                 setSuggestedQuestions(suggest?.questions ?? []);

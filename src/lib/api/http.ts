@@ -18,6 +18,11 @@ http.interceptors.response.use(
 	(err) => Promise.reject(err)
 );
 
-export default http;
-
-
+export const http2 = axios.create({
+	baseURL,
+	timeout: 30000, // 🔥 핵심: 30초
+	headers: {
+	  "Content-Type": "application/json",
+	},
+  });
+  
