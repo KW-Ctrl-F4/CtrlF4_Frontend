@@ -88,7 +88,7 @@ export function useDocumentAnalysis({
                     },
                     body: file,
                   });
-                  
+				setDocId(presign.docId);      
 				setProgress(20);
 
 				// 3) preprocess

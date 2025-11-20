@@ -24,7 +24,6 @@ export async function postDocumentsPresign(body: PresignRequest) {
             operation: "put",
             fileName: body.fileName,
             contentType: body.contentType,
-            userId: body.userId ?? 1,
         },
         {
             headers: { "Content-Type": "application/json" },
