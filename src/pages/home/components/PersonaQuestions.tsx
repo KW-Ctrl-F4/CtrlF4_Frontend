@@ -1,13 +1,14 @@
 import PersonaQuestionForm from "./PersonaQuestionForm";
-import { PERSONA_QUESTIONS } from "../../../mocks";
 
 interface PersonaQuestionsProps {
+  questions: string[];
   currentQuestionIndex: number;
   handleAnswerSubmit: (answer: string) => void;
   skipQuestion: () => void;
 }
 
 export default function PersonaQuestions({
+  questions,
   currentQuestionIndex,
   handleAnswerSubmit,
   skipQuestion,
@@ -19,15 +20,13 @@ export default function PersonaQuestions({
           더 정확한 분석을 위한 질문
         </h2>
         <p className="text-gray-600">
-          질문 {currentQuestionIndex + 1} / {PERSONA_QUESTIONS.length}
+          질문 {currentQuestionIndex + 1} / {questions.length}
         </p>
         <div className="w-full bg-gray-200 rounded-full h-2 mt-4">
           <div
             className="bg-primary-600 h-2 rounded-full transition-all duration-300"
             style={{
-              width: `${
-                ((currentQuestionIndex + 1) / PERSONA_QUESTIONS.length) * 100
-              }%`,
+              width: `${((currentQuestionIndex + 1) / Math.max(1, questions.length)) * 100}%`,
             }}
           ></div>
         </div>
@@ -36,7 +35,7 @@ export default function PersonaQuestions({
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            {PERSONA_QUESTIONS[currentQuestionIndex]}
+            {questions[currentQuestionIndex]}
           </h3>
 
           <PersonaQuestionForm
