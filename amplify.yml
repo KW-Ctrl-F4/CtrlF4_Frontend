@@ -6,7 +6,7 @@ frontend:
         - npm ci
     build:
       commands:
-        - echo "VITE_BASE_URL=$VITE_BASE_URL >> .env"
+        - echo "VITE_BASE_URL=$VITE_BASE_URL" >> .env
         - npm run build
   artifacts:
     baseDirectory: out
