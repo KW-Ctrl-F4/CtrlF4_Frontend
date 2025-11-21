@@ -212,7 +212,7 @@ export const authAPI = {
     }
   },
 
-  // 비밀번호 변경 API
+  // 비밀번호 변경 API (Authorization: Bearer access_token)
   changePassword: async ({
     currentPassword,
     newPassword,
