@@ -1,3 +1,5 @@
+const API_BASE_URL = import.meta.env.VITE_BASE_URL || "";
+
 export const authAPI = {
   signup: async ({
     nickname,
@@ -9,7 +11,7 @@ export const authAPI = {
     password: string;
   }) => {
     try {
-      const response = await fetch("/api/register", {
+      const response = await fetch(`${API_BASE_URL}/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -56,7 +58,7 @@ export const authAPI = {
 
   signin: async ({ email, password }: { email: string; password: string }) => {
     try {
-      const response = await fetch("/api/login", {
+      const response = await fetch(`${API_BASE_URL}/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -106,7 +108,7 @@ export const authAPI = {
   // 로그아웃 API
   logout: async () => {
     try {
-      await fetch("/api/logout", {
+      await fetch(`${API_BASE_URL}/logout`, {
         method: "POST",
         credentials: "include", // 쿠키 포함
       });
@@ -133,7 +135,7 @@ export const authAPI = {
     accessToken: string;
   }) => {
     try {
-      const response = await fetch("/api/account/nickname", {
+      const response = await fetch(`${API_BASE_URL}/account/nickname`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -177,7 +179,7 @@ export const authAPI = {
     accessToken: string;
   }) => {
     try {
-      const response = await fetch("/api/account", {
+      const response = await fetch(`${API_BASE_URL}/account`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -223,7 +225,7 @@ export const authAPI = {
     accessToken: string;
   }) => {
     try {
-      const response = await fetch("/api/change-password", {
+      const response = await fetch(`${API_BASE_URL}/change-password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

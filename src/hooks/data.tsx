@@ -1,3 +1,5 @@
+const API_BASE_URL = import.meta.env.VITE_BASE_URL || "";
+
 export const dataAPI = {
   getHistory: async ({
     accessToken,
@@ -7,7 +9,7 @@ export const dataAPI = {
     id: string;
   }) => {
     try {
-      const response = await fetch("/api/history", {
+      const response = await fetch(`${API_BASE_URL}/history`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

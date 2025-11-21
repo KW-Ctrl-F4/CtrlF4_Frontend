@@ -6,6 +6,8 @@ import {
   type ReactNode,
 } from "react";
 
+const API_BASE_URL = import.meta.env.VITE_BASE_URL || "";
+
 interface User {
   nickname: string;
   email: string;
@@ -45,7 +47,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const checkAuthStatus = async () => {
       try {
         // refresh_token이 있는지 확인하는 API 호출
-        const response = await fetch("/api/refresh", {
+        const response = await fetch(`${API_BASE_URL}/refresh`, {
           method: "POST",
           credentials: "include", // 쿠키 포함
         });
@@ -83,7 +85,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = async () => {
     try {
       // 서버에 로그아웃 요청 (refresh_token 쿠키 삭제)
-      await fetch("/api/logout", {
+      await fetch(`${API_BASE_URL}/logout`, {
         method: "POST",
         credentials: "include",
       });
