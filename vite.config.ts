@@ -75,7 +75,7 @@ export default defineConfig({
     proxy: {
       "/api": {
         target:
-          "https://bmchkcoxyd.execute-api.ap-northeast-2.amazonaws.com/Prod",
+          "https://t1lj5e92o8.execute-api.ap-northeast-2.amazonaws.com/Prod",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
         configure: (proxy, _options) => {
