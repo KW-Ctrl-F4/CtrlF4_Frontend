@@ -1,5 +1,11 @@
 const API_BASE_URL = import.meta.env.VITE_BASE_URL || "";
 
+// 디버깅: 환경변수 값 확인
+if (typeof window !== "undefined") {
+  console.log("VITE_BASE_URL:", import.meta.env.VITE_BASE_URL);
+  console.log("API_BASE_URL:", API_BASE_URL);
+}
+
 export const authAPI = {
   signup: async ({
     nickname,
