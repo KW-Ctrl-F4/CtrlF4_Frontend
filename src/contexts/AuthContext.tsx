@@ -95,7 +95,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // 메모리에서 토큰과 사용자 정보 제거
       setAccessToken(null);
       setUser(null);
-      // 홈으로 이동
+
       window.location.href = "/";
     }
   };
