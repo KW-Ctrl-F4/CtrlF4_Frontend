@@ -2,6 +2,12 @@ import axios from "axios";
 
 const baseURL = import.meta.env.VITE_ANALYZE_BASE as string;
 
+// 디버깅: 환경변수 값 확인
+if (typeof window !== "undefined") {
+	console.log("VITE_BASE_URL:", import.meta.env.VITE_ANALYZE_BASE);
+	console.log("VITE_ANALYZE_BASE:", baseURL);
+  }
+
 // ==============================
 // 기본 http 인스턴스 (JWT 자동 포함)
 // ==============================
