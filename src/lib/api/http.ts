@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_API_BASE as string;
+const baseURL = import.meta.env.VITE_ANALYZE_BASE as string;
 
 // ==============================
 // 기본 http 인스턴스 (JWT 자동 포함)
