@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import Header from "../_shared/layout/Header";
 import FileUploader from "./components/FileUploader";
 import PersonaQuestions from "./components/PersonaQuestions";
-import Analytics from "./components/Analytics";
 import SessionProgress from "./components/SessionProgress";
 import RoleSelector from "./components/RoleSelector";
 import Info from "./components/Info";
@@ -24,7 +23,7 @@ export default function Home() {
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  const analysis = useDocumentAnalysis({ role: "user", pollIntervalMs: 30000 });
+  const analysis = useDocumentAnalysis({ role: "user", pollIntervalMs: 5000 });
   const hasNavigatedRef = useRef(false);
 
   // 파일 업로드 핸들러
@@ -162,13 +161,12 @@ export default function Home() {
               if (w === "verifier") return "검증";
               return w;
             };
-            const workers = (analysis.availableWorkers || []).length > 0
+            const discoveredWorkers = (analysis.availableWorkers || []).length > 0
               ? analysis.availableWorkers
               : Object.keys(analysis.workerStatuses || {});
-            if (workers.length === 0) {
-              // 백엔드 메타가 아직 없으면 기존 Analytics로 표시
-              return <Analytics progress={analysisProgress} />;
-            }
+            const workers = discoveredWorkers.length > 0
+              ? discoveredWorkers
+              : ["qa", "summarizer", "verifier"]; // 기본 스텝
             const steps = workers.map((w: string) => ({
               id: w,
               label: toLabel(w),
