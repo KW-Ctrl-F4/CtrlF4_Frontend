@@ -45,4 +45,53 @@ export function formatKstDate(input: string | Date): string {
   return `${y}-${m}-${d}`;
 }
 
+export function formatKstDateTime(input: string | Date): string {
+  let date: Date | null = null;
+
+  if (input instanceof Date) {
+    date = input;
+  } else if (typeof input === "string") {
+    let s = input.trim();
+    if (s.includes("+") && s.endsWith("Z")) {
+      s = s.slice(0, -1);
+    }
+    const parsed = new Date(s);
+    if (!Number.isFinite(parsed.getTime())) {
+      const m = s.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+      date = m ? new Date(`${m[0]}Z`) : null;
+    } else {
+      date = parsed;
+    }
+  }
+
+  if (!date || !Number.isFinite(date.getTime())) {
+    return String(input);
+  }
+
+  const parts = new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+
+  const byType: Record<string, string> = {};
+  for (const p of parts) {
+    byType[p.type] = p.value;
+  }
+
+  const y = byType.year;
+  const m = byType.month;
+  const d = byType.day;
+  const hh = byType.hour;
+  const mm = byType.minute;
+  if (!y || !m || !d || !hh || !mm) {
+    return String(input);
+  }
+  return `${y}-${m}-${d} ${hh}:${mm}`;
+}
+
 

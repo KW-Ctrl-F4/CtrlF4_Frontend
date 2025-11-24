@@ -4,6 +4,7 @@ import Header from "../_shared/layout/Header";
 import FileUploader from "./components/FileUploader";
 import PersonaQuestions from "./components/PersonaQuestions";
 import Analytics from "./components/Analytics";
+import SessionProgress from "./components/SessionProgress";
 import RoleSelector from "./components/RoleSelector";
 import Info from "./components/Info";
 import Title from "./components/Title";
@@ -153,7 +154,28 @@ export default function Home() {
             />
           )
         ) : (
-          <Analytics progress={analysisProgress} />
+          (() => {
+            // 워커 라벨 매핑
+            const toLabel = (w: string) => {
+              if (w === "qa") return "질의응답 생성";
+              if (w === "summarizer") return "요약 생성";
+              if (w === "verifier") return "검증";
+              return w;
+            };
+            const workers = (analysis.availableWorkers || []).length > 0
+              ? analysis.availableWorkers
+              : Object.keys(analysis.workerStatuses || {});
+            if (workers.length === 0) {
+              // 백엔드 메타가 아직 없으면 기존 Analytics로 표시
+              return <Analytics progress={analysisProgress} />;
+            }
+            const steps = workers.map((w: string) => ({
+              id: w,
+              label: toLabel(w),
+              status: (analysis.workerStatuses || {})[w] || "pending",
+            }));
+            return <SessionProgress progress={analysisProgress} steps={steps} />;
+          })()
         )}
 
         {/* Features */}

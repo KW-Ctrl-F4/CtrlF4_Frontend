@@ -16,7 +16,7 @@ import type {
     CustomIntentsRequest,
     SuggestQuestionItem,
 } from "./types";
-import { formatKstDate } from "../date";
+import { formatKstDateTime } from "../date";
 
 export interface UseDocumentAnalysisOptions {
 	role?: string;
@@ -41,6 +41,9 @@ export function useDocumentAnalysis({
 	const pollStartTimeRef = useRef<number | null>(null);
 	const pollAttemptsRef = useRef<number>(0);
 	const [progress, setProgress] = useState(0);
+		const [availableWorkers, setAvailableWorkers] = useState<string[]>([]);
+		const [workerStatuses, setWorkerStatuses] = useState<Record<string, "pending" | "running" | "done">>({});
+		const [runStatus, setRunStatus] = useState<string | null>(null);
 
 	// 언마운트 시 폴링 중지
 	// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -63,6 +66,9 @@ export function useDocumentAnalysis({
 		setError(null);
 		setResults(null);
 		setProgress(0);
+			setAvailableWorkers([]);
+			setWorkerStatuses({});
+			setRunStatus(null);
 		if (pollTimerRef.current) {
 			window.clearInterval(pollTimerRef.current);
 			pollTimerRef.current = null;
@@ -183,7 +189,32 @@ export function useDocumentAnalysis({
 							}
 
 							const status = raw?.run?.status;
+							setRunStatus(typeof status === "string" ? status : null);
 							const workers: any[] = Array.isArray(raw?.availableWorkers) ? raw.availableWorkers : [];
+							setAvailableWorkers(workers.map(String));
+							// 워커 상태 파생
+							const resultsObj: any = raw?.results || {};
+							const nextStatuses: Record<string, "pending" | "running" | "done"> = {};
+							// 우선 availableWorkers 기준으로 생성
+							for (const w of workers) {
+								const key = String(w);
+								const s = resultsObj?.[key]?.status;
+								if (s === "done" || s === "running") {
+									nextStatuses[key] = s;
+								} else {
+									nextStatuses[key] = "pending";
+								}
+							}
+							// results에만 있는 키도 반영
+							for (const key of Object.keys(resultsObj || {})) {
+								const s = resultsObj?.[key]?.status;
+								if (s === "done" || s === "running") {
+									nextStatuses[key] = s;
+								} else if (!(key in nextStatuses)) {
+									nextStatuses[key] = "pending";
+								}
+							}
+							setWorkerStatuses(nextStatuses);
 							const isDone = status === "completed" || workers.length === 0;
 
 							if (isDone) {
@@ -237,8 +268,11 @@ export function useDocumentAnalysis({
 			isLoading,
 			error,
 			results,
+			availableWorkers,
+			workerStatuses,
+			runStatus,
 		}),
-        [docId, sessionId, runId, suggestedIntents, suggestedRoles, suggestedQuestions, selectedIntents, isLoading, error, results]
+        [docId, sessionId, runId, suggestedIntents, suggestedRoles, suggestedQuestions, selectedIntents, isLoading, error, results, availableWorkers, workerStatuses, runStatus]
 	);
 
 	return {
@@ -263,7 +297,7 @@ function normalizeResults(raw: any): RunResultsResponse {
     }));
     return {
         title: raw?.doc?.name || "분석 결과",
-		uploadDate: formatKstDate(new Date()),
+		uploadDate: formatKstDateTime(new Date()),
         fileCount: 1,
         clauses: [],
         riskFactors,
