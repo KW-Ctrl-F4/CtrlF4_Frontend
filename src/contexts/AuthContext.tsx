@@ -73,10 +73,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     checkAuthStatus();
   }, []);
 
-  useEffect(() => {
-    console.log(user);
-  }, [user]);
-
   const login = (token: string, userData: User) => {
     setAccessToken(token);
     setUser(userData);
