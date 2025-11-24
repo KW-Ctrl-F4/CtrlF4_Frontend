@@ -87,6 +87,11 @@ export const authAPI = {
 
       console.log("Login response data:", data);
 
+      // 🔥🔥🔥 여기 추가 (가장 중요)
+      if (data?.access_token) {
+        localStorage.setItem("token", data.access_token);
+      }
+
       return {
         success: true,
         message: data.message || "로그인이 완료되었습니다.",
