@@ -200,7 +200,7 @@ export function useDocumentAnalysis({
 
 							// 타임아웃 가드 (최대 3분 or 300회 시도)
 							const elapsed = (Date.now() - (pollStartTimeRef.current || Date.now()));
-							if (elapsed > 180_000 || pollAttemptsRef.current > 300) {
+							if (elapsed > 180_000 || pollAttemptsRef.current > 500) {
 								setError("결과 폴링이 지연되고 있습니다. 잠시 후 다시 시도해주세요.");
 								if (pollTimerRef.current) {
 									window.clearInterval(pollTimerRef.current);
