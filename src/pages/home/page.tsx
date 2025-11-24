@@ -4,6 +4,7 @@ import Header from "../_shared/layout/Header";
 import FileUploader from "./components/FileUploader";
 import PersonaQuestions from "./components/PersonaQuestions";
 import SessionProgress from "./components/SessionProgress";
+import Analytics from "./components/Analytics";
 import RoleSelector from "./components/RoleSelector";
 import Info from "./components/Info";
 import Title from "./components/Title";
@@ -154,7 +155,11 @@ export default function Home() {
           )
         ) : (
           (() => {
-            // 워커 라벨 매핑
+            // 런 시작 전(업로드/전처리/역할·질문 제안 단계)은 기존 Analytics 표시
+            if (!analysis.runId) {
+              return <Analytics progress={analysisProgress} />;
+            }
+            // 런 시작 후에는 세션 단계 진행 표시
             const toLabel = (w: string) => {
               if (w === "qa") return "질의응답 생성";
               if (w === "summarizer") return "요약 생성";
