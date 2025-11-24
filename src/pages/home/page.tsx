@@ -23,7 +23,7 @@ export default function Home() {
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  const analysis = useDocumentAnalysis({ role: "user", pollIntervalMs: 3000 });
+  const analysis = useDocumentAnalysis({ role: "user", pollIntervalMs: 30000 });
   const hasNavigatedRef = useRef(false);
 
   // 파일 업로드 핸들러
