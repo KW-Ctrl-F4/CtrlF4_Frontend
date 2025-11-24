@@ -70,6 +70,7 @@ export const authAPI = {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
+        credentials: "include", // 쿠키 포함 (refresh token 수신)
         body: JSON.stringify({
           email,
           password,
