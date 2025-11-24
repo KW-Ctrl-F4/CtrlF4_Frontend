@@ -46,14 +46,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        // refresh_token이 있는지 확인하는 API 호출
+        console.log("Checking auth status with refresh token...");
+
+        // refresh_token이 있는지 확인하는 API 호출 (httpOnly 쿠키 자동 전송)
         const response = await fetch(`${API_BASE_URL}/refresh`, {
           method: "POST",
           credentials: "include", // 쿠키 포함
         });
 
+        console.log("Refresh response status:", response.status);
+
         if (response.ok) {
           const data = await response.json();
+          console.log("Refresh response data:", data);
+
           if (data.access_token && data.nickname && data.email && data.id) {
             setAccessToken(data.access_token);
             setUser({
@@ -61,7 +67,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               email: data.email,
               id: data.id,
             });
+            console.log("Auth restored from refresh token");
           }
+        } else {
+          console.log("Refresh token not valid or not found");
         }
       } catch (error) {
         console.error("Auth check failed:", error);
