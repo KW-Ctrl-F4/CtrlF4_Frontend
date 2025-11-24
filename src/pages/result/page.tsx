@@ -7,6 +7,7 @@ import Risk from "./components/Risk";
 import Suggestion from "./components/Suggestion";
 import Footer from "./components/Footer";
 import type { RunResultsResponse } from "../../lib/api/types";
+import { formatKstDate } from "../../lib/date";
 
 export default function Result() {
   const [activeTab, setActiveTab] = useState<
@@ -20,7 +21,7 @@ export default function Result() {
     }
     return {
       title: "분석 결과",
-      uploadDate: new Date().toISOString(),
+      uploadDate: formatKstDate(new Date()),
       fileCount: 1,
       clauses: [],
       riskFactors: [],
@@ -42,8 +43,8 @@ export default function Result() {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Title
-          title={analysisData.title}
-          uploadDate={analysisData.uploadDate}
+          title={analysisData.title ?? "분석 결과"}
+          uploadDate={analysisData.uploadDate ?? formatKstDate(new Date())}
           activeTab={activeTab}
           onTabChange={setActiveTab}
           onDownload={downloadReport}
@@ -52,7 +53,16 @@ export default function Result() {
 
         {activeTab === "summary" && <Summary clauses={analysisData.clauses} />}
         {activeTab === "risks" && <Risk riskFactors={analysisData.riskFactors} />}
-        {activeTab === "suggestions" && <Suggestion suggestions={analysisData.suggestions} />}
+        {activeTab === "suggestions" && (
+          <Suggestion
+            suggestions={(analysisData.suggestions ?? []).map((s) => ({
+              id: s.id,
+              title: s.title,
+              example: s.example ?? "",
+              description: s.description,
+            }))}
+          />
+        )}
 
         <Footer />
       </main>

@@ -16,6 +16,7 @@ import type {
     CustomIntentsRequest,
     SuggestQuestionItem,
 } from "./types";
+import { formatKstDate } from "../date";
 
 export interface UseDocumentAnalysisOptions {
 	role?: string;
@@ -262,7 +263,7 @@ function normalizeResults(raw: any): RunResultsResponse {
     }));
     return {
         title: raw?.doc?.name || "분석 결과",
-        uploadDate: new Date().toISOString(),
+		uploadDate: formatKstDate(new Date()),
         fileCount: 1,
         clauses: [],
         riskFactors,

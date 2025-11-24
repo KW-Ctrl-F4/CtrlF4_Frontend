@@ -1,3 +1,5 @@
+import { formatKstDate } from "../../../lib/date";
+
 interface TitleProps {
   title: string;
   uploadDate: string;
@@ -15,12 +17,14 @@ export default function Title({
   onDownload,
   onShare,
 }: TitleProps) {
+  // 한국시간 기준 YYYY-MM-DD로 표시
+  const displayDate = formatKstDate(uploadDate);
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{title}</h1>
-          <p className="text-gray-600">업로드: {uploadDate}</p>
+          <p className="text-gray-600">업로드: {displayDate}</p>
         </div>
         <div className="flex items-center space-x-3">
           <button
