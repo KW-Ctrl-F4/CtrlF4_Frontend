@@ -12,7 +12,6 @@ interface HistoryItem {
   uploadDate: string;
   description: string;
   fileCount: number;
-  status: "completed" | "processing" | "failed";
 }
 
 export default function History() {
@@ -45,7 +44,6 @@ export default function History() {
               uploadDate: new Date().toLocaleDateString(), // API에서 날짜 없으면 임시로
               description: item.summary_line,
               fileCount: 1, // API에서 제공하지 않으면 기본값
-              status: "completed" as const,
             })
           );
           setHistoryItems(transformedItems);
@@ -69,17 +67,43 @@ export default function History() {
     fetchHistory();
   }, [accessToken]);
 
-  const deleteHistoryItem = (id: string) => {
-    if (confirm("이 분석 기록을 삭제하시겠습니까?")) {
-      setHistoryItems((prev) => prev.filter((item) => item.id !== id));
+  const deleteHistoryItem = async (id: string) => {
+    if (!confirm("이 분석 기록을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    if (!accessToken) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
+    try {
+      const response = await dataAPI.deleteHistory(accessToken, id);
+
+      if (response.success) {
+        // 삭제 성공 시 UI에서 해당 항목 제거
+        setHistoryItems((prev) => prev.filter((item) => item.id !== id));
+        alert(response.message || "히스토리가 삭제되었습니다.");
+      } else {
+        // 에러 처리
+        if (response.error === "UNAUTHORIZED") {
+          alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+          window.location.href = "/signin";
+        } else if (response.error === "NOT_FOUND") {
+          alert("해당 히스토리를 찾을 수 없습니다.");
+          // 히스토리 목록 다시 불러오기
+          window.location.reload();
+        } else {
+          alert(response.message || "히스토리 삭제에 실패했습니다.");
+        }
+      }
+    } catch (err) {
+      console.error("Delete history error:", err);
+      alert("히스토리 삭제 중 오류가 발생했습니다.");
     }
   };
 
   const downloadReport = (item: HistoryItem) => {
-    if (item.status !== "completed") {
-      alert("분석이 완료된 후 다운로드할 수 있습니다.");
-      return;
-    }
     // 실제로는 파일 다운로드 로직
     alert(`${item.title} 리포트를 다운로드합니다.`);
   };
@@ -132,7 +156,6 @@ export default function History() {
                     uploadDate={item.uploadDate}
                     description={item.description}
                     fileCount={item.fileCount}
-                    status={item.status}
                     onDownload={() => downloadReport(item)}
                     onDelete={() => deleteHistoryItem(item.id)}
                   />
