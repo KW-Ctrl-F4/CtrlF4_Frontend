@@ -65,7 +65,8 @@ export default function Home() {
       setShowPersonaQuestions(false);
       // 런 시작 직후에도 로딩이 확실히 보이도록 보장
       setIsAnalyzing(true);
-      setAnalysisProgress((p) => (p < 70 ? 70 : p));
+      // 세션 프로세스는 0%부터 시작
+      setAnalysisProgress(0);
       // 의도 선택 완료 후 실제 분석 시작
       try {
         const a1 = newAnswers[1] || "";
@@ -94,7 +95,7 @@ export default function Home() {
     if (analysis.results && !hasNavigatedRef.current) {
       hasNavigatedRef.current = true;
       setIsAnalyzing(false);
-      navigate("/result", { state: { results: analysis.results } });
+      navigate("/result", { state: { results: analysis.results, runId: analysis.runId } });
     }
   }, [analysis.progress, analysis.results, navigate]);
 
@@ -130,13 +131,13 @@ export default function Home() {
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded mb-4">{error}</div>
         )}
-        {!showPersonaQuestions && !isAnalyzing ? (
+        {!isAnalyzing && !showPersonaQuestions ? (
           <FileUploader
             uploadedFiles={uploadedFiles}
             onFilesChange={handleFilesChange}
             onStartAnalysis={startAnalysis}
           />
-        ) : showPersonaQuestions ? (
+        ) : showPersonaQuestions && !analysis.runId ? (
           selectedRole === null ? (
             <RoleSelector
               roles={(analysis.suggestedRoles || []).length > 0 ? analysis.suggestedRoles : ["가맹본부", "가맹점"]}
@@ -159,25 +160,15 @@ export default function Home() {
             if (!analysis.runId) {
               return <Analytics progress={analysisProgress} />;
             }
-            // 런 시작 후에는 세션 단계 진행 표시
-            const toLabel = (w: string) => {
-              if (w === "qa") return "질의응답 생성";
-              if (w === "summarizer") return "요약 생성";
-              if (w === "verifier") return "검증";
-              return w;
-            };
-            const discoveredWorkers = (analysis.availableWorkers || []).length > 0
-              ? analysis.availableWorkers
-              : Object.keys(analysis.workerStatuses || {});
-            const workers = discoveredWorkers.length > 0
-              ? discoveredWorkers
-              : ["qa", "summarizer", "verifier"]; // 기본 스텝
-            const steps = workers.map((w: string) => ({
-              id: w,
-              label: toLabel(w),
-              status: (analysis.workerStatuses || {})[w] || "pending",
-            }));
-            return <SessionProgress progress={analysisProgress} steps={steps} />;
+            // 런 시작 후에는 세션 단계 진행 표시 (스텝 계산은 컴포넌트 내부에서 수행)
+            return (
+              <SessionProgress
+                progress={analysisProgress}
+                availableWorkers={analysis.availableWorkers}
+                workerStatuses={analysis.workerStatuses}
+                attempt={analysis.runAttempt}
+              />
+            );
           })()
         )}
 

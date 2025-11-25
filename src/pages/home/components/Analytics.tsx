@@ -4,6 +4,22 @@ interface AnalyticsProps {
 
 export default function Analytics({ progress }: AnalyticsProps) {
   const clampedProgress = Math.max(0, Math.min(100, progress));
+  // 백엔드 내부 단계 값(20,35,45,55)을 4단계(25/50/75/100)로 정규화
+  const displayProgress = (() => {
+    if (clampedProgress < 20) {
+      return (clampedProgress / 20) * 25;
+    }
+    if (clampedProgress < 35) {
+      return 25 + ((clampedProgress - 20) / 15) * 25;
+    }
+    if (clampedProgress < 45) {
+      return 50 + ((clampedProgress - 35) / 10) * 25;
+    }
+    if (clampedProgress < 55) {
+      return 75 + ((clampedProgress - 45) / 10) * 25;
+    }
+    return 100;
+  })();
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8">
       <div className="text-center">
@@ -12,23 +28,23 @@ export default function Analytics({ progress }: AnalyticsProps) {
         </div>
 
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          계약서 분석 중...
+          문서 준비 단계 진행 중...
         </h2>
 
         <p className="text-gray-600 mb-8">
-          AI가 계약서를 꼼꼼히 분석하고 있습니다. 잠시만 기다려주세요.
+          업로드한 문서를 분석할 수 있도록 준비 중입니다. 잠시만 기다려주세요.
         </p>
 
         {/* Progress Bar */}
         <div className="max-w-md mx-auto mb-6">
           <div className="flex justify-between text-sm text-gray-600 mb-2">
             <span>진행률</span>
-            <span>{Math.round(clampedProgress)}%</span>
+            <span>{Math.round(displayProgress)}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-4">
             <div
               className="bg-gradient-to-r from-primary-500 to-primary-600 h-4 rounded-full transition-all duration-500 ease-out"
-              style={{ width: `${clampedProgress}%` }}
+              style={{ width: `${displayProgress}%` }}
             ></div>
           </div>
         </div>
@@ -38,86 +54,86 @@ export default function Analytics({ progress }: AnalyticsProps) {
           <div className="space-y-3">
             <div
               className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                clampedProgress >= 20
+                displayProgress >= 25
                   ? "bg-green-50 text-green-800"
                   : "bg-gray-50 text-gray-600"
               }`}
             >
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                  clampedProgress >= 20 ? "bg-green-200" : "bg-gray-200"
+                  displayProgress >= 25 ? "bg-green-200" : "bg-gray-200"
                 }`}
               >
-                {clampedProgress >= 20 ? (
+                {displayProgress >= 25 ? (
                   <i className="ri-check-line text-sm"></i>
                 ) : (
                   <i className="ri-loader-4-line text-sm animate-spin"></i>
                 )}
               </div>
-              <span className="text-sm font-medium">문서 구조 분석</span>
+              <span className="text-sm font-medium">계약서 업로드 완료</span>
             </div>
 
             <div
               className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                clampedProgress >= 50
+                displayProgress >= 50
                   ? "bg-green-50 text-green-800"
                   : "bg-gray-50 text-gray-600"
               }`}
             >
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                  clampedProgress >= 50 ? "bg-green-200" : "bg-gray-200"
+                  displayProgress >= 50 ? "bg-green-200" : "bg-gray-200"
                 }`}
               >
-                {clampedProgress >= 50 ? (
+                {displayProgress >= 50 ? (
                   <i className="ri-check-line text-sm"></i>
                 ) : (
                   <i className="ri-loader-4-line text-sm animate-spin"></i>
                 )}
               </div>
-              <span className="text-sm font-medium">주요 조항 추출</span>
+              <span className="text-sm font-medium">텍스트 추출 완료</span>
             </div>
 
             <div
               className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                clampedProgress >= 80
+                displayProgress >= 75
                   ? "bg-green-50 text-green-800"
                   : "bg-gray-50 text-gray-600"
               }`}
             >
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                  clampedProgress >= 80 ? "bg-green-200" : "bg-gray-200"
+                  displayProgress >= 75 ? "bg-green-200" : "bg-gray-200"
                 }`}
               >
-                {clampedProgress >= 80 ? (
+                {displayProgress >= 75 ? (
                   <i className="ri-check-line text-sm"></i>
                 ) : (
                   <i className="ri-loader-4-line text-sm animate-spin"></i>
                 )}
               </div>
-              <span className="text-sm font-medium">위험 요소 분석</span>
+              <span className="text-sm font-medium">조항 추출 완료</span>
             </div>
 
             <div
               className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                clampedProgress >= 100
+                displayProgress >= 100
                   ? "bg-green-50 text-green-800"
                   : "bg-gray-50 text-gray-600"
               }`}
             >
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                  clampedProgress >= 100 ? "bg-green-200" : "bg-gray-200"
+                  displayProgress >= 100 ? "bg-green-200" : "bg-gray-200"
                 }`}
               >
-                {clampedProgress >= 100 ? (
+                {displayProgress >= 100 ? (
                   <i className="ri-check-line text-sm"></i>
                 ) : (
                   <i className="ri-loader-4-line text-sm animate-spin"></i>
                 )}
               </div>
-              <span className="text-sm font-medium">개선 제안 생성</span>
+              <span className="text-sm font-medium">질문 생성 완료</span>
             </div>
           </div>
         </div>

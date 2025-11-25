@@ -106,4 +106,6 @@ export type ApiErrorPayload = {
 	status?: number;
 };
 
-
+export interface RunRevisionResponse {
+	runId: string;
+}
