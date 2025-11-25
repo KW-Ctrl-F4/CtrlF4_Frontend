@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 
 interface HistoryItemProps {
+  s3_key: string;
   title: string;
   uploadDate: string;
   description: string;
@@ -10,6 +11,7 @@ interface HistoryItemProps {
 }
 
 export default function HistoryItem({
+  s3_key,
   title,
   uploadDate,
   description,

@@ -7,7 +7,8 @@ import { useAuth } from "../../contexts/AuthContext";
 import { dataAPI, type HistoryItem as ApiHistoryItem } from "../../hooks/data";
 
 interface HistoryItem {
-  id: string;
+  s3_key: string;
+  runId: string;
   title: string;
   uploadDate: string;
   description: string;
@@ -39,11 +40,12 @@ export default function History() {
           // API 응답을 UI 형식으로 변환
           const transformedItems: HistoryItem[] = response.data.history.map(
             (item: ApiHistoryItem) => ({
-              id: item.s3_key,
+              s3_key: item.s3_key,
+              runId: item.run_id,
               title: item.title,
-              uploadDate: new Date().toLocaleDateString(), // API에서 날짜 없으면 임시로
+              uploadDate: new Date().toLocaleDateString(),
               description: item.summary_line,
-              fileCount: 1, // API에서 제공하지 않으면 기본값
+              fileCount: 1,
             })
           );
           setHistoryItems(transformedItems);
@@ -67,7 +69,7 @@ export default function History() {
     fetchHistory();
   }, [accessToken]);
 
-  const deleteHistoryItem = async (id: string) => {
+  const deleteHistoryItem = async (runId: string) => {
     if (!confirm("이 분석 기록을 삭제하시겠습니까?")) {
       return;
     }
@@ -78,11 +80,11 @@ export default function History() {
     }
 
     try {
-      const response = await dataAPI.deleteHistory(accessToken, id);
+      const response = await dataAPI.deleteHistory(accessToken, runId);
 
       if (response.success) {
         // 삭제 성공 시 UI에서 해당 항목 제거
-        setHistoryItems((prev) => prev.filter((item) => item.id !== id));
+        setHistoryItems((prev) => prev.filter((item) => item.runId !== runId));
         alert(response.message || "히스토리가 삭제되었습니다.");
       } else {
         // 에러 처리
@@ -151,13 +153,14 @@ export default function History() {
               <div className="space-y-4">
                 {historyItems.map((item) => (
                   <HistoryItem
-                    key={item.id}
+                    key={item.runId}
+                    s3_key={item.s3_key}
                     title={item.title}
                     uploadDate={item.uploadDate}
                     description={item.description}
                     fileCount={item.fileCount}
                     onDownload={() => downloadReport(item)}
-                    onDelete={() => deleteHistoryItem(item.id)}
+                    onDelete={() => deleteHistoryItem(item.runId)}
                   />
                 ))}
               </div>

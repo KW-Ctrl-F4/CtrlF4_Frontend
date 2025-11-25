@@ -1,8 +1,8 @@
 const API_BASE_URL = import.meta.env.VITE_BASE_URL || "";
 
-// TypeScript 타입 정의
 export interface HistoryItem {
   s3_key: string;
+  run_id: string;
   title: string;
   summary_line: string;
 }
