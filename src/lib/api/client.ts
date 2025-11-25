@@ -11,6 +11,7 @@ import type {
     SessionCreateResponse,
     RunStartResponse,
     RunResultsResponse,
+    RunRevisionResponse,
 } from "./types";
 
 // =========================
@@ -144,4 +145,36 @@ export async function postRun(sessionId: string) {
 export async function getRunResults(runId: string) {
     const res = await http.get<RunResultsResponse>(`/runs/${runId}/results`);
     return res.data;
+}
+
+// 재분석
+export async function postRunRevision(runId: string) {
+    const res = await http.post(`/runs/${runId}/reanalyze`);
+    const raw = res?.data ?? {};
+
+    // 응답 바디 우선 시도 (string + number 모두 허용)
+    let nextRunId =
+        (raw?.runId !== undefined && raw.runId !== null && String(raw.runId)) ||
+        (raw?.id !== undefined && raw.id !== null && String(raw.id)) ||
+        (raw?.newRunId !== undefined && raw.newRunId !== null && String(raw.newRunId)) ||
+        null;
+
+    // 헤더 보조 시도
+    if (!nextRunId) {
+        const headers: any = res?.headers || {};
+        const fromHeader = headers["x-run-id"] || headers["X-Run-Id"];
+        if (fromHeader) nextRunId = String(fromHeader);
+
+        const location = headers["location"] || headers["Location"];
+        if (!nextRunId && typeof location === "string") {
+            const m = location.match(/\/runs\/([^/]+)/);
+            if (m && m[1]) nextRunId = m[1];
+        }
+    }
+
+    if (!nextRunId) {
+        throw new Error("reanalyze 응답에서 runId를 찾을 수 없습니다.");
+    }
+
+    return { runId: String(nextRunId) } as RunRevisionResponse;
 }

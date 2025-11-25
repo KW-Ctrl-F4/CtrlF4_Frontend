@@ -9,6 +9,7 @@ import {
 	postProbe,
 	postRun,
 	postSessions,
+	postRunRevision,
 } from "./client";
 import type {
     RunResultsResponse,
@@ -44,6 +45,7 @@ export function useDocumentAnalysis({
 		const [availableWorkers, setAvailableWorkers] = useState<string[]>([]);
 		const [workerStatuses, setWorkerStatuses] = useState<Record<string, "pending" | "running" | "done">>({});
 		const [runStatus, setRunStatus] = useState<string | null>(null);
+		const [runAttempt, setRunAttempt] = useState<number | null>(null);
 
 	// 언마운트 시 폴링 중지
 	// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -69,6 +71,7 @@ export function useDocumentAnalysis({
 			setAvailableWorkers([]);
 			setWorkerStatuses({});
 			setRunStatus(null);
+			setRunAttempt(null);
 		if (pollTimerRef.current) {
 			window.clearInterval(pollTimerRef.current);
 			pollTimerRef.current = null;
@@ -153,6 +156,8 @@ export function useDocumentAnalysis({
 			if (!docId) throw new Error("docId가 없습니다.");
 			setIsLoading(true);
 			setError(null);
+            // 세션 진행률은 0부터 다시 시작
+            setProgress(0);
 			try {
 				// 7) sessions
                 const numericDocId = Number(docId);
@@ -166,12 +171,13 @@ export function useDocumentAnalysis({
 				};
 				const { sessionId } = await postSessions(sessionBody);
 				setSessionId(sessionId);
-				setProgress(70);
 
                 // 8) run (바디에 sessionId/docId/role/answers 포함)
                 const { runId } = await postRun(sessionId!);
 				setRunId(runId);
-				setProgress(80);
+				try {
+					window.sessionStorage.setItem("ctrlf4:lastRunId", runId);
+				} catch {}
 
 				// 9) results poll (상태/availableWorkers 기반 종료, 타임아웃 가드)
 				await new Promise<void>((resolve) => {
@@ -190,6 +196,10 @@ export function useDocumentAnalysis({
 
 							const status = raw?.run?.status;
 							setRunStatus(typeof status === "string" ? status : null);
+							const attemptNum = Number(raw?.run?.attempt);
+							if (Number.isFinite(attemptNum)) {
+								setRunAttempt(attemptNum);
+							}
 							const workers: any[] = Array.isArray(raw?.availableWorkers) ? raw.availableWorkers : [];
 							setAvailableWorkers(workers.map(String));
 							// 워커 상태 파생
@@ -215,7 +225,7 @@ export function useDocumentAnalysis({
 								}
 							}
 							setWorkerStatuses(nextStatuses);
-							const isDone = status === "completed" || workers.length === 0;
+							const isDone = status === "completed";
 
 							if (isDone) {
 								// 결과 표준화 (risk만 도착해도 UI가 그릴 수 있게 변환)
@@ -271,8 +281,9 @@ export function useDocumentAnalysis({
 			availableWorkers,
 			workerStatuses,
 			runStatus,
+			runAttempt,
 		}),
-        [docId, sessionId, runId, suggestedIntents, suggestedRoles, suggestedQuestions, selectedIntents, isLoading, error, results, availableWorkers, workerStatuses, runStatus]
+        [docId, sessionId, runId, suggestedIntents, suggestedRoles, suggestedQuestions, selectedIntents, isLoading, error, results, availableWorkers, workerStatuses, runStatus, runAttempt]
 	);
 
 	return {
@@ -303,6 +314,149 @@ function normalizeResults(raw: any): RunResultsResponse {
         riskFactors,
         suggestions: [],
     };
+}
+
+// =========================
+// Re-analysis (재분석)
+// =========================
+export function useReanalysis(pollIntervalMs: number = 5000) {
+	const [isReanalyzing, setIsReanalyzing] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+	const [progress, setProgress] = useState(0);
+	const [availableWorkers, setAvailableWorkers] = useState<string[]>([]);
+	const [workerStatuses, setWorkerStatuses] = useState<Record<string, "pending" | "running" | "done">>({});
+	const [runStatus, setRunStatus] = useState<string | null>(null);
+	const [runAttempt, setRunAttempt] = useState<number | null>(null);
+	const [newRunId, setNewRunId] = useState<string | null>(null);
+	const [results, setResults] = useState<RunResultsResponse | null>(null);
+	const pollTimerRef = useRef<number | null>(null);
+	const pollStartTimeRef = useRef<number | null>(null);
+
+	useEffect(() => {
+		return () => {
+			if (pollTimerRef.current) {
+				window.clearInterval(pollTimerRef.current);
+				pollTimerRef.current = null;
+			}
+		};
+	}, []);
+
+	const reanalyze = useCallback(async (baseRunId: string) => {
+		if (!baseRunId) return;
+		setIsReanalyzing(true);
+		setError(null);
+		setProgress(0);
+		setAvailableWorkers([]);
+		setWorkerStatuses({});
+		setRunStatus(null);
+		setRunAttempt(null);
+		setResults(null);
+		try {
+			const { runId } = await postRunRevision(baseRunId);
+			setNewRunId(runId);
+			try {
+				window.sessionStorage.setItem("ctrlf4:lastRunId", runId);
+			} catch {}
+
+			// 결과 1회 즉시 폴링
+			const tick = async (): Promise<boolean> => {
+				const raw: any = await getRunResults(runId);
+				const p = Number(raw?.run?.progress);
+				if (Number.isFinite(p)) {
+					setProgress((prev) => Math.max(prev, Math.min(99, p)));
+				}
+				const status = raw?.run?.status;
+				setRunStatus(typeof status === "string" ? status : null);
+				const attemptNum = Number(raw?.run?.attempt);
+				if (Number.isFinite(attemptNum)) {
+					setRunAttempt(attemptNum);
+				}
+				const workers: any[] = Array.isArray(raw?.availableWorkers) ? raw.availableWorkers : [];
+				setAvailableWorkers(workers.map(String));
+				const resultsObj: any = raw?.results || {};
+				const nextStatuses: Record<string, "pending" | "running" | "done"> = {};
+				for (const w of workers) {
+					const key = String(w);
+					const s = resultsObj?.[key]?.status;
+					if (s === "done" || s === "running") {
+						nextStatuses[key] = s;
+					} else {
+						nextStatuses[key] = "pending";
+					}
+				}
+				for (const key of Object.keys(resultsObj || {})) {
+					const s = resultsObj?.[key]?.status;
+					if (s === "done" || s === "running") {
+						nextStatuses[key] = s;
+					} else if (!(key in nextStatuses)) {
+						nextStatuses[key] = "pending";
+					}
+				}
+				setWorkerStatuses(nextStatuses);
+
+				if (status === "completed") {
+					const normalized = normalizeResults(raw);
+					setResults(normalized);
+					setProgress(100);
+					return true;
+				}
+				return false;
+			};
+
+			// 즉시 1회 체크
+			const doneNow = await tick();
+			if (doneNow) {
+				return;
+			}
+
+			await new Promise<void>((resolve) => {
+				pollStartTimeRef.current = Date.now();
+				pollTimerRef.current = window.setInterval(async () => {
+					try {
+						const done = await tick();
+						if (done) {
+							if (pollTimerRef.current) {
+								window.clearInterval(pollTimerRef.current);
+								pollTimerRef.current = null;
+							}
+							resolve();
+						}
+
+						const elapsed = (Date.now() - (pollStartTimeRef.current || Date.now()));
+						if (elapsed > 600_000) {
+							setError("재분석 결과 폴링이 지연되고 있습니다. 잠시 후 다시 시도해주세요.");
+							if (pollTimerRef.current) {
+								window.clearInterval(pollTimerRef.current);
+								pollTimerRef.current = null;
+							}
+							resolve();
+						}
+					} catch {
+						// 일시 오류는 다음 틱에 재시도
+					}
+				}, pollIntervalMs);
+			});
+		} catch (e: any) {
+			const msg = e?.response?.data?.message || e?.message || "재분석 호출 중 오류가 발생했습니다.";
+			setError(msg);
+			throw e;
+		} finally {
+			setIsReanalyzing(false);
+		}
+	}, [pollIntervalMs]);
+
+	return {
+		isReanalyzing,
+		error,
+		progress,
+		availableWorkers,
+		workerStatuses,
+		runStatus,
+		runAttempt,
+		newRunId,
+		results,
+		reanalyze,
+	};
 }
 
 
