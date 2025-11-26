@@ -32,6 +32,7 @@ export default function Home() {
   const confirmSectionRef = useRef<HTMLDivElement>(null);
   const analysisSectionRef = useRef<HTMLDivElement>(null);
   const completionSectionRef = useRef<HTMLDivElement>(null);
+  const questionsSectionRef = useRef<HTMLDivElement>(null);
 
   // 파일 업로드 핸들러
   const handleFilesChange = (files: File[]) => {
@@ -209,7 +210,6 @@ export default function Home() {
 
   // "답변하러 가기" 버튼 클릭 핸들러
   const handleGoToQuestions = () => {
-    setShowCompletionSection(false);
     // suggest가 이미 수신되었으면 PersonaQuestions 표시
     if (analysis.suggestedQuestions && analysis.suggestedQuestions.length > 0) {
       const filtered = (analysis.suggestedQuestions || []).filter(
@@ -226,26 +226,21 @@ export default function Home() {
     }
   };
 
-  // suggest 수신 후 질문/역할 단계 시작
+  // 질문 섹션이 표시되면 부드럽게 스크롤 (완료 섹션과 동일한 방식)
   useEffect(() => {
-    if (
-      isAnalyzing &&
-      !showPersonaQuestions &&
-      (analysis.suggestedQuestions?.length || 0) > 0
-    ) {
-      const filtered = (analysis.suggestedQuestions || []).filter(
-        (q: any) => q && q.key !== "role"
-      );
-      const suggestQs = filtered.map((q: any) => q.text);
-      const keys = filtered.map((q: any) => q.key);
-      const picked = suggestQs.slice(0, 2);
-      setQuestionKeys(
-        keys.slice(0, 2).length > 0 ? keys.slice(0, 2) : ["question", "focus"]
-      );
-      setQuestions(picked.length > 0 ? picked : PERSONA_QUESTIONS.slice(0, 2));
-      setShowPersonaQuestions(true);
+    if (showPersonaQuestions && questionsSectionRef.current) {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          if (questionsSectionRef.current) {
+            questionsSectionRef.current.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        }, 100);
+      });
     }
-  }, [isAnalyzing, showPersonaQuestions, analysis.suggestedQuestions]);
+  }, [showPersonaQuestions]);
 
   const skipQuestion = () => {
     handleAnswerSubmit("");
@@ -412,30 +407,6 @@ export default function Home() {
                 </section>
               )}
 
-              {/* 역할 선택 또는 질문 응답 단계 */}
-              {showPersonaQuestions &&
-                !analysis.runId &&
-                (selectedRole === null ? (
-                  <RoleSelector
-                    roles={
-                      (analysis.suggestedRoles || []).length > 0
-                        ? analysis.suggestedRoles
-                        : ["가맹본부", "가맹점"]
-                    }
-                    onSelect={(role) => {
-                      setSelectedRole(role);
-                      setAnswers([role]);
-                    }}
-                  />
-                ) : (
-                  <PersonaQuestions
-                    questions={questions}
-                    currentQuestionIndex={currentQuestionIndex}
-                    handleAnswerSubmit={handleAnswerSubmit}
-                    skipQuestion={skipQuestion}
-                  />
-                ))}
-
               {/* 분석 진행 중 - 분석이 시작되면 표시 */}
               {isAnalyzing && (
                 <section
@@ -489,6 +460,35 @@ export default function Home() {
                       </button>
                     </div>
                   </div>
+                </section>
+              )}
+
+              {/* 역할 선택 또는 질문 응답 단계 */}
+              {showPersonaQuestions && !analysis.runId && (
+                <section
+                  ref={questionsSectionRef}
+                  className="min-h-screen flex items-center justify-center py-12"
+                >
+                  {selectedRole === null ? (
+                    <RoleSelector
+                      roles={
+                        (analysis.suggestedRoles || []).length > 0
+                          ? analysis.suggestedRoles
+                          : ["가맹본부", "가맹점"]
+                      }
+                      onSelect={(role) => {
+                        setSelectedRole(role);
+                        setAnswers([role]);
+                      }}
+                    />
+                  ) : (
+                    <PersonaQuestions
+                      questions={questions}
+                      currentQuestionIndex={currentQuestionIndex}
+                      handleAnswerSubmit={handleAnswerSubmit}
+                      skipQuestion={skipQuestion}
+                    />
+                  )}
                 </section>
               )}
             </main>
