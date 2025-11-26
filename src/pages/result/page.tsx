@@ -5,7 +5,6 @@ import Title from "./components/Title";
 import Footer from "./components/Footer";
 import { formatKstDateTime } from "../../lib/date";
 import { getRunResults, postRunRevision } from "../../lib/api/client";
-import { useRef } from "react";
 import ResultsCard from "./components/ResultsCard";
 import { extractResultSections } from "./utils";
 
@@ -24,12 +23,6 @@ export default function Result() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isReanalyzing, setIsReanalyzing] = useState<boolean>(false);
-
-  // 섹션 스크롤 앵커
-  const refSummary = useRef<HTMLDivElement | null>(null);
-  const refRisk = useRef<HTMLDivElement | null>(null);
-  const refRevision = useRef<HTMLDivElement | null>(null);
-  const refQA = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -58,10 +51,6 @@ export default function Result() {
     alert("분석 리포트를 다운로드합니다.");
   };
 
-  const shareReport = () => {
-    alert("분석 리포트를 공유합니다.");
-  };
-
   const pageTitle: string =
     (raw?.doc?.name as string) ||
     (raw?.run?.id ? `Run #${raw.run.id}` : "분석 결과");
@@ -83,21 +72,7 @@ export default function Result() {
     hasRisk,
     hasRevision,
     hasQA,
-    sections: availableSections,
   } = extractResultSections(raw);
-
-  const onSectionClick = (key: "summary" | "risk" | "revision" | "qa") => {
-    const map: Record<string, HTMLDivElement | null> = {
-      summary: refSummary.current,
-      risk: refRisk.current,
-      revision: refRevision.current,
-      qa: refQA.current,
-    } as any;
-    const el = map[key];
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
 
   const onReanalyze = async () => {
     if (!baseRunId || isReanalyzing) return;
@@ -139,10 +114,7 @@ export default function Result() {
         <Title
           title={pageTitle}
           uploadDate={uploadedAt}
-          sections={availableSections}
-          onSectionClick={onSectionClick}
           onDownload={downloadReport}
-          onShare={shareReport}
         />
 
         {isLoading && (
@@ -172,7 +144,10 @@ export default function Result() {
           />
         )}
 
-        <Footer onReanalyze={baseRunId ? onReanalyze : undefined} isReanalyzing={isReanalyzing} />
+        <Footer
+          onReanalyze={baseRunId ? onReanalyze : undefined}
+          isReanalyzing={isReanalyzing}
+        />
       </main>
     </div>
   );
