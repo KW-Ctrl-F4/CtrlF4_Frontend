@@ -1,14 +1,10 @@
-import { useMemo, useState } from "react";
-import AnchorTooltip from "./AnchorTooltip";
-
-type AnchorItem = { id?: string | number; title?: string };
+import { useMemo } from "react";
 
 interface QACardProps {
 	title?: string;
 	question?: string;
 	answer?: string;
 	focus?: string[];
-	anchors?: AnchorItem[];
 	embedded?: boolean;
 }
 
@@ -54,11 +50,9 @@ export default function QACard({
 	question,
 	answer,
 	focus,
-	anchors,
 	embedded = false,
 }: QACardProps) {
 	const highlighted = useHighlightedAnswer(answer, focus);
-	const [hover, setHover] = useState(false);
 
 	const Content = (
 		<div className="relative p-8">
@@ -70,14 +64,9 @@ export default function QACard({
 						<p className="text-gray-800">{question}</p>
 					</div>
 				)}
-				<div
-					className="relative rounded-md bg-primary-50 p-3"
-					onMouseEnter={() => setHover(true)}
-					onMouseLeave={() => setHover(false)}
-				>
+				<div className="relative rounded-md bg-primary-50 p-3">
 					<p className="text-sm font-semibold text-primary-900 mb-1">답변</p>
 					<p className="text-primary-900 leading-relaxed">{highlighted}</p>
-					<AnchorTooltip anchors={anchors} position="right" visible={Boolean(anchors?.length) && hover} />
 				</div>
 				{(focus?.length ?? 0) > 0 && (
 					<p className="text-xs text-gray-500">

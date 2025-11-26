@@ -1,5 +1,3 @@
-import { useState } from "react";
-import AnchorTooltip from "./AnchorTooltip";
 
 type Revision = {
 	anchor?: { id?: string | number; title?: string } | null;
@@ -15,20 +13,15 @@ interface RevisionCardProps {
 }
 
 export default function RevisionCard({ title = "Revision", revisions = [], embedded = false }: RevisionCardProps) {
-	const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 	const Content = (
 		<div className="relative p-8">
 			<h2 className="text-2xl font-bold text-gray-900 mb-6">{title}</h2>
 			<div className="space-y-5">
 				{revisions.map((rev, idx) => {
-					const hasAnchor = !!rev.anchor;
-					const anchors = rev.anchor ? [rev.anchor] : [];
 					return (
 						<div
 							key={idx}
 							className="relative border border-gray-200 rounded-lg p-5"
-							onMouseEnter={() => setHoverIdx(idx)}
-							onMouseLeave={() => setHoverIdx((cur) => (cur === idx ? null : cur))}
 						>
 							{rev.anchor?.title && (
 								<p className="text-sm text-gray-500 mb-2">
@@ -54,11 +47,6 @@ export default function RevisionCard({ title = "Revision", revisions = [], embed
 									</div>
 								</div>
 							)}
-							<AnchorTooltip
-								anchors={anchors}
-								position="top-right"
-								visible={hasAnchor && hoverIdx === idx}
-							/>
 						</div>
 					);
 				})}

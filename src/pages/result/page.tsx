@@ -58,10 +58,6 @@ export default function Result() {
     alert("분석 리포트를 다운로드합니다.");
   };
 
-  const shareReport = () => {
-    alert("분석 리포트를 공유합니다.");
-  };
-
   const pageTitle: string =
     (raw?.doc?.name as string) ||
     (raw?.run?.id ? `Run #${raw.run.id}` : "분석 결과");
@@ -142,7 +138,6 @@ export default function Result() {
           sections={availableSections}
           onSectionClick={onSectionClick}
           onDownload={downloadReport}
-          onShare={shareReport}
         />
 
         {isLoading && (
@@ -172,7 +167,10 @@ export default function Result() {
           />
         )}
 
-        <Footer onReanalyze={baseRunId ? onReanalyze : undefined} isReanalyzing={isReanalyzing} />
+        <Footer
+          onReanalyze={baseRunId ? onReanalyze : undefined}
+          isReanalyzing={isReanalyzing}
+        />
       </main>
     </div>
   );

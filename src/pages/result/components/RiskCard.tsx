@@ -1,5 +1,4 @@
 import { useState } from "react";
-import AnchorTooltip from "./AnchorTooltip";
 
 type Severity = "low" | "medium" | "high" | string;
 
@@ -27,20 +26,15 @@ function severityBadgeClasses(severity?: Severity) {
 
 export default function RiskCard({ title = "Risk", items = [], embedded = false }: RiskCardProps) {
 	const [openIdx, setOpenIdx] = useState<number | null>(null);
-	const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 	const Content = (
 		<div className="relative p-8">
 			<h2 className="text-2xl font-bold text-gray-900 mb-6">{title}</h2>
 			<div className="space-y-4">
 				{items.map((it, idx) => {
-					const hasAnchor = !!it.anchor;
-					const anchors = it.anchor ? [it.anchor] : [];
 					return (
 						<div
 							key={idx}
 							className="relative border border-gray-200 rounded-lg p-5"
-							onMouseEnter={() => setHoverIdx(idx)}
-							onMouseLeave={() => setHoverIdx((cur) => (cur === idx ? null : cur))}
 						>
 							<div className="flex items-start justify-between">
 								<div>
@@ -78,11 +72,6 @@ export default function RiskCard({ title = "Risk", items = [], embedded = false 
 									{it.original_excerpt}
 								</div>
 							)}
-							<AnchorTooltip
-								anchors={anchors}
-								position="top-right"
-								visible={hasAnchor && hoverIdx === idx}
-							/>
 						</div>
 					);
 				})}

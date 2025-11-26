@@ -8,7 +8,6 @@ interface TitleProps {
   sections?: { key: "summary" | "risk" | "revision" | "qa"; label: string }[];
   onSectionClick?: (key: "summary" | "risk" | "revision" | "qa") => void;
   onDownload: () => void;
-  onShare: () => void;
 }
 
 export default function Title({
@@ -19,7 +18,6 @@ export default function Title({
   sections,
   onSectionClick,
   onDownload,
-  onShare,
 }: TitleProps) {
   // 한국시간 기준 YYYY-MM-DD HH:mm 표시
   const displayDate = formatKstDateTime(uploadDate);
@@ -37,13 +35,6 @@ export default function Title({
           >
             <i className="ri-download-line mr-2"></i>
             리포트 다운로드
-          </button>
-          <button
-            onClick={onShare}
-            className="flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer whitespace-nowrap"
-          >
-            <i className="ri-share-line mr-2"></i>
-            공유하기
           </button>
         </div>
       </div>
