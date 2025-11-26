@@ -29,6 +29,7 @@ export default function Home() {
   const hasNavigatedRef = useRef(false);
   const uploadSectionRef = useRef<HTMLDivElement>(null);
   const confirmSectionRef = useRef<HTMLDivElement>(null);
+  const analysisSectionRef = useRef<HTMLDivElement>(null);
 
   // 파일 업로드 핸들러
   const handleFilesChange = (files: File[]) => {
@@ -87,6 +88,33 @@ export default function Home() {
       setShowPersonaQuestions(false);
     }
   };
+
+  // 분석 섹션이 렌더링된 후 부드럽게 스크롤
+  useEffect(() => {
+    if (isAnalyzing && analysisSectionRef.current) {
+      // 여러 번 시도하여 DOM이 완전히 렌더링된 후 스크롤
+      const scrollToAnalysis = () => {
+        if (analysisSectionRef.current) {
+          analysisSectionRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+      };
+
+      // 즉시 시도
+      scrollToAnalysis();
+
+      // 약간의 딜레이 후 재시도 (DOM 업데이트 대기)
+      const timeout1 = setTimeout(scrollToAnalysis, 100);
+      const timeout2 = setTimeout(scrollToAnalysis, 300);
+
+      return () => {
+        clearTimeout(timeout1);
+        clearTimeout(timeout2);
+      };
+    }
+  }, [isAnalyzing]);
 
   const handleAnswerSubmit = async (answer: string) => {
     const newAnswers = [...answers, answer];
@@ -264,77 +292,76 @@ export default function Home() {
                 </div>
               )}
 
-              {!isAnalyzing && !showPersonaQuestions ? (
-                <>
-                  {/* 파일 업로드 단계 */}
-                  <FileUploader
-                    uploadedFiles={uploadedFiles}
-                    onFilesChange={handleFilesChange}
-                  />
+              {/* 파일 업로드 단계 - 항상 표시 */}
+              <FileUploader
+                uploadedFiles={uploadedFiles}
+                onFilesChange={handleFilesChange}
+              />
 
-                  {/* 파일 확인 및 분석 시작 섹션 */}
-                  {uploadedFiles.length > 0 && (
-                    <section
-                      ref={confirmSectionRef}
-                      className="min-h-screen flex items-center justify-center py-12"
-                    >
-                      <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 max-w-2xl w-full">
-                        <div className="text-center mb-8">
-                          <div className="w-16 h-16 mx-auto mb-6 bg-primary-100 rounded-full flex items-center justify-center">
-                            <i className="ri-file-check-line text-3xl text-primary-600"></i>
-                          </div>
-                          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                            이 문서로 분석을 시작할까요?
-                          </h2>
-                          <p className="text-lg text-gray-600">
-                            업로드된 파일을 확인하고 분석을 시작해주세요
+              {/* 파일 확인 및 분석 시작 섹션 - 파일이 업로드된 경우 표시 */}
+              {uploadedFiles.length > 0 && (
+                <section
+                  ref={confirmSectionRef}
+                  className="min-h-screen flex items-center justify-center py-12"
+                >
+                  <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 max-w-2xl w-full">
+                    <div className="text-center mb-8">
+                      <div className="w-16 h-16 mx-auto mb-6 bg-primary-100 rounded-full flex items-center justify-center">
+                        <i className="ri-file-check-line text-3xl text-primary-600"></i>
+                      </div>
+                      <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                        이 문서로 분석을 시작할까요?
+                      </h2>
+                      <p className="text-lg text-gray-600">
+                        업로드된 파일을 확인하고 분석을 시작해주세요
+                      </p>
+                    </div>
+
+                    {/* 업로드된 파일 정보 */}
+                    <div className="bg-gray-50 rounded-xl p-6 mb-8">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <i className="ri-file-text-line text-primary-600 text-xl"></i>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-900 truncate">
+                            {uploadedFiles[0].name}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {formatFileSize(uploadedFiles[0].size)}
                           </p>
                         </div>
-
-                        {/* 업로드된 파일 정보 */}
-                        <div className="bg-gray-50 rounded-xl p-6 mb-8">
-                          <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <i className="ri-file-text-line text-primary-600 text-xl"></i>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-gray-900 truncate">
-                                {uploadedFiles[0].name}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {formatFileSize(uploadedFiles[0].size)}
-                              </p>
-                            </div>
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 flex-shrink-0">
-                              <i className="ri-check-line mr-1"></i>
-                              업로드 완료
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* 분석 시작 버튼 */}
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                          <button
-                            onClick={startAnalysis}
-                            className="px-8 py-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors cursor-pointer whitespace-nowrap text-lg font-medium shadow-lg"
-                          >
-                            <i className="ri-play-line mr-2"></i>
-                            분석 시작하기
-                          </button>
-                          <button
-                            onClick={handleSelectDifferentFile}
-                            className="px-8 py-4 bg-white text-gray-700 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer whitespace-nowrap text-lg font-medium"
-                          >
-                            다른 파일 선택하기
-                          </button>
-                        </div>
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 flex-shrink-0">
+                          <i className="ri-check-line mr-1"></i>
+                          업로드 완료
+                        </span>
                       </div>
-                    </section>
-                  )}
-                </>
-              ) : showPersonaQuestions && !analysis.runId ? (
-                // 역할 선택 또는 질문 응답 단계
-                selectedRole === null ? (
+                    </div>
+
+                    {/* 분석 시작 버튼 */}
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <button
+                        onClick={startAnalysis}
+                        className="px-8 py-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors cursor-pointer whitespace-nowrap text-lg font-medium shadow-lg"
+                      >
+                        <i className="ri-play-line mr-2"></i>
+                        분석 시작하기
+                      </button>
+                      <button
+                        onClick={handleSelectDifferentFile}
+                        className="px-8 py-4 bg-white text-gray-700 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer whitespace-nowrap text-lg font-medium"
+                      >
+                        다른 파일 선택하기
+                      </button>
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* 역할 선택 또는 질문 응답 단계 */}
+              {showPersonaQuestions &&
+                !analysis.runId &&
+                (selectedRole === null ? (
                   <RoleSelector
                     roles={
                       (analysis.suggestedRoles || []).length > 0
@@ -353,24 +380,30 @@ export default function Home() {
                     handleAnswerSubmit={handleAnswerSubmit}
                     skipQuestion={skipQuestion}
                   />
-                )
-              ) : (
-                // 분석 진행 중
-                (() => {
-                  // 런 시작 전(업로드/전처리/역할·질문 제안 단계)은 기존 Analytics 표시
-                  if (!analysis.runId) {
-                    return <Analytics progress={analysisProgress} />;
-                  }
-                  // 런 시작 후에는 세션 단계 진행 표시 (스텝 계산은 컴포넌트 내부에서 수행)
-                  return (
-                    <SessionProgress
-                      progress={analysisProgress}
-                      availableWorkers={analysis.availableWorkers}
-                      workerStatuses={analysis.workerStatuses}
-                      attempt={analysis.runAttempt}
-                    />
-                  );
-                })()
+                ))}
+
+              {/* 분석 진행 중 - 분석이 시작되면 표시 */}
+              {isAnalyzing && (
+                <section
+                  ref={analysisSectionRef}
+                  className="min-h-screen flex items-center justify-center py-12"
+                >
+                  {(() => {
+                    // 런 시작 전(업로드/전처리/역할·질문 제안 단계)은 기존 Analytics 표시
+                    if (!analysis.runId) {
+                      return <Analytics progress={analysisProgress} />;
+                    }
+                    // 런 시작 후에는 세션 단계 진행 표시 (스텝 계산은 컴포넌트 내부에서 수행)
+                    return (
+                      <SessionProgress
+                        progress={analysisProgress}
+                        availableWorkers={analysis.availableWorkers}
+                        workerStatuses={analysis.workerStatuses}
+                        attempt={analysis.runAttempt}
+                      />
+                    );
+                  })()}
+                </section>
               )}
             </main>
           </section>
