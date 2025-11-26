@@ -3,7 +3,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 
 export default function Header() {
   const navigate = useNavigate();
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
 
   return (
     <header className="bg-white shadow-sm border-b">
@@ -68,9 +68,6 @@ export default function Header() {
                 </div>
               </>
             )}
-            <button className="text-gray-600 hover:text-gray-900 cursor-pointer whitespace-nowrap transition-colors duration-200">
-              Help
-            </button>
           </div>
         </div>
       </div>
