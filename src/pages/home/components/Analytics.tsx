@@ -34,125 +34,185 @@ export default function Analytics({ progress }: AnalyticsProps) {
     return "pending";
   };
 
+  // 현재 진행 중인 단계 찾기 (완료되지 않은 첫 번째 단계)
+  const getCurrentActiveStep = () => {
+    for (let i = 0; i < steps.length; i++) {
+      const status = getStepStatus(steps[i].threshold);
+      if (status !== "done") {
+        return i; // 완료되지 않은 첫 번째 단계가 현재 진행 중
+      }
+    }
+    return steps.length; // 모든 단계 완료
+  };
+
+  const currentActiveIndex = getCurrentActiveStep();
+
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 max-w-2xl w-full">
-      <div className="text-center mb-8">
-        <div className="w-16 h-16 mx-auto mb-6 bg-primary-100 rounded-full flex items-center justify-center relative">
-          <div className="w-12 h-12 border-4 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
+    <>
+      <style>{`
+        /* 1. 필수: 각도 변수 정의 (브라우저가 각도 변화를 인식하도록 함) */
+        @property --border-angle {
+          syntax: "<angle>";
+          initial-value: 0deg;
+          inherits: false;
+        }
+
+        @keyframes dotPulse {
+          0%, 100% {
+            transform: translateX(-50%) scale(1);
+            opacity: 0.6;
+          }
+          50% {
+            transform: translateX(-50%) scale(1.5);
+            opacity: 1;
+          }
+        }
+
+        /* 2. 필수: 회전 애니메이션 키프레임 */
+        @keyframes border-angle-rotate {
+          from { --border-angle: 0deg; }
+          to { --border-angle: 360deg; }
+        }
+
+        /* 3. 회전하는 테두리 스타일 */
+        .rotating-border {
+          /* 테두리 애니메이션 핵심 설정 */
+          border: 2px solid transparent;
+          animation: border-angle-rotate 2s infinite linear;
+
+          /* 배경 겹치기 (Masking 기법) */
+          background: 
+            /* 1) 안쪽 배경 (흰색) - padding-box 영역까지만 칠함 */
+            linear-gradient(white, white) padding-box,
+            
+            /* 2) 테두리 그라데이션 (오렌지 계열) - border-box 영역까지 칠함 */
+            conic-gradient(
+              from var(--border-angle),
+              oklch(65% 0.18 25deg),   /* 어두운 오렌지-레드 */
+              oklch(70% 0.20 35deg),   /* 오렌지 */
+              oklch(75% 0.22 45deg),   /* 밝은 오렌지 */
+              oklch(80% 0.20 55deg),   /* 노란 오렌지 */
+              oklch(85% 0.18 65deg),   /* 황금색 */
+              oklch(80% 0.20 55deg),   /* 노란 오렌지 */
+              oklch(75% 0.22 45deg),   /* 밝은 오렌지 */
+              oklch(70% 0.20 35deg),   /* 오렌지 */
+              oklch(65% 0.18 25deg)    /* 어두운 오렌지-레드로 돌아옴 */
+            ) 
+            border-box;
+        }
+      `}</style>
+      <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 max-w-2xl w-full">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            문서를 분석하고 있어요
+          </h2>
+
+          <p className="text-lg text-gray-600 mb-4">
+            업로드한 문서를 분석하고 있어요. 잠시만 기다려주세요!
+          </p>
         </div>
 
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-          문서를 준비하고 있어요
-        </h2>
+        {/* Progress Steps - 모든 단계 표시 */}
+        <div className="max-w-lg mx-auto">
+          <div className="space-y-4">
+            {steps.map((step, index) => {
+              const status = getStepStatus(step.threshold);
+              const isDone = status === "done";
+              const isActive = index === currentActiveIndex; // 현재 진행 중인 단계
 
-        <p className="text-lg text-gray-600 mb-4">
-          업로드한 문서를 분석할 수 있도록 준비 중이에요. 잠시만 기다려주세요
-        </p>
-
-        {/* 점 애니메이션 */}
-        <div className="flex items-center justify-center space-x-1">
-          <div
-            className="w-2 h-2 bg-primary-600 rounded-full animate-bounce"
-            style={{ animationDelay: "0s" }}
-          ></div>
-          <div
-            className="w-2 h-2 bg-primary-600 rounded-full animate-bounce"
-            style={{ animationDelay: "0.2s" }}
-          ></div>
-          <div
-            className="w-2 h-2 bg-primary-600 rounded-full animate-bounce"
-            style={{ animationDelay: "0.4s" }}
-          ></div>
-        </div>
-      </div>
-
-      {/* Progress Steps with Connection Lines */}
-      <div className="max-w-lg mx-auto">
-        <div className="space-y-4">
-          {steps.map((step, index) => {
-            const status = getStepStatus(step.threshold);
-            const isDone = status === "done";
-            const isActive = status === "active";
-
-            return (
-              <div key={step.id} className="relative">
-                {/* Connection Line with Animated Dots */}
-                {index < steps.length - 1 && (
-                  <div className="absolute left-6 top-12 w-0.5 h-12 -z-10">
-                    <div
-                      className={`w-full h-full transition-all duration-500 ${
-                        isDone ? "bg-primary-300" : "bg-gray-200"
-                      }`}
-                      style={{
-                        height: isDone ? "100%" : "0%",
-                        transition: "height 0.5s ease-out",
-                      }}
-                    />
-                    {/* 수직 점 3개 애니메이션 */}
-                    {isDone && (
+              return (
+                <div key={step.id} className="relative">
+                  {/* Connection Line with Animated Dots */}
+                  {index < steps.length - 1 && (
+                    <div className="absolute left-6 top-12 w-0.5 h-12 -z-10">
                       <div
-                        className="absolute left-1/2 -translate-x-1/2 top-1/3 w-1 h-1 bg-primary-500 rounded-full animate-pulse"
-                        style={{ animationDelay: "0s" }}
-                      ></div>
-                    )}
-                    {isDone && (
-                      <div
-                        className="absolute left-1/2 -translate-x-1/2 top-1/2 w-1 h-1 bg-primary-500 rounded-full animate-pulse"
-                        style={{ animationDelay: "0.3s" }}
-                      ></div>
-                    )}
-                    {isDone && (
-                      <div
-                        className="absolute left-1/2 -translate-x-1/2 top-2/3 w-1 h-1 bg-primary-500 rounded-full animate-pulse"
-                        style={{ animationDelay: "0.6s" }}
-                      ></div>
-                    )}
-                  </div>
-                )}
+                        className={`w-full h-full transition-all duration-500 ${
+                          isDone ? "bg-primary-300" : "bg-gray-200"
+                        }`}
+                        style={{
+                          height: isDone ? "100%" : "0%",
+                          transition: "height 0.5s ease-out",
+                        }}
+                      />
+                      {/* 수직 점 3개 - 항상 표시, 순서대로 크기 변화 애니메이션 */}
+                      {isDone && (
+                        <>
+                          <div
+                            className="absolute left-1/2 -translate-x-1/2 top-1/3 rounded-full bg-primary-500"
+                            style={{
+                              width: "6px",
+                              height: "6px",
+                              animation: "dotPulse 1.5s ease-in-out infinite",
+                              animationDelay: "0s",
+                            }}
+                          ></div>
+                          <div
+                            className="absolute left-1/2 -translate-x-1/2 top-1/2 rounded-full bg-primary-500"
+                            style={{
+                              width: "6px",
+                              height: "6px",
+                              animation: "dotPulse 1.5s ease-in-out infinite",
+                              animationDelay: "0.5s",
+                            }}
+                          ></div>
+                          <div
+                            className="absolute left-1/2 -translate-x-1/2 top-2/3 rounded-full bg-primary-500"
+                            style={{
+                              width: "6px",
+                              height: "6px",
+                              animation: "dotPulse 1.5s ease-in-out infinite",
+                              animationDelay: "1s",
+                            }}
+                          ></div>
+                        </>
+                      )}
+                    </div>
+                  )}
 
-                <div
-                  className={`flex items-center space-x-4 p-4 rounded-xl transition-all duration-300 ${
-                    isDone
-                      ? "bg-primary-50 text-primary-900 border-2 border-primary-200"
-                      : isActive
-                      ? "bg-primary-50/50 text-primary-700 border-2 border-primary-100"
-                      : "bg-gray-50 text-gray-600 border-2 border-gray-200"
-                  }`}
-                >
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                    className={`flex items-center space-x-4 p-4 rounded-xl transition-all duration-300 ${
                       isDone
-                        ? "bg-primary-500 text-white scale-110"
+                        ? "bg-green-50 text-green-900 border-2 border-green-300"
                         : isActive
-                        ? "bg-primary-300 text-white animate-pulse"
-                        : "bg-gray-300 text-gray-500"
+                        ? "bg-white text-gray-900 rotating-border"
+                        : "bg-gray-50 text-gray-600 border-2 border-gray-200"
                     }`}
                   >
-                    {isDone ? (
-                      <i className="ri-check-line text-lg"></i>
-                    ) : isActive ? (
-                      <i className="ri-loader-4-line text-lg animate-spin"></i>
-                    ) : (
-                      <i className="ri-time-line text-lg"></i>
-                    )}
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                        isDone
+                          ? "bg-green-500 text-white scale-110"
+                          : isActive
+                          ? "bg-primary-500 text-white"
+                          : "bg-gray-300 text-gray-500"
+                      }`}
+                    >
+                      {isDone ? (
+                        <i className="ri-check-line text-lg"></i>
+                      ) : isActive ? (
+                        <i className="ri-loader-4-line text-lg animate-spin"></i>
+                      ) : (
+                        <i className="ri-time-line text-lg"></i>
+                      )}
+                    </div>
+                    <span
+                      className={`text-base font-medium ${
+                        isDone
+                          ? "text-green-900"
+                          : isActive
+                          ? "text-gray-900"
+                          : "text-gray-600"
+                      }`}
+                    >
+                      {step.label}
+                    </span>
                   </div>
-                  <span
-                    className={`text-base font-medium ${
-                      isDone
-                        ? "text-primary-900"
-                        : isActive
-                        ? "text-primary-700"
-                        : "text-gray-600"
-                    }`}
-                  >
-                    {step.label}
-                  </span>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
