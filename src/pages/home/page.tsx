@@ -130,7 +130,8 @@ export default function Home() {
         ((currentQuestionIndex + 1) / Math.max(questions.length, 1)) * 50
       );
     } else {
-      setShowPersonaQuestions(false);
+      // 모든 질문 완료 - 분석 시작
+      // 질문 섹션은 유지하고, 아래에 분석 섹션 생성
       // 런 시작 직후에도 로딩이 확실히 보이도록 보장
       setIsAnalyzing(true);
       // 세션 프로세스는 0%부터 시작
@@ -157,6 +158,17 @@ export default function Home() {
           },
           selectedRole || undefined
         );
+        // 분석 섹션으로 스크롤 (질문 섹션 아래에 생성됨)
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            if (analysisSectionRef.current) {
+              analysisSectionRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+            }
+          }, 100);
+        });
       } catch (e: any) {
         setError(e?.message ?? "분석 시작 실패");
         setIsAnalyzing(false);
@@ -174,6 +186,22 @@ export default function Home() {
       });
     }
   }, [analysis.progress, analysis.results, navigate]);
+
+  // 분석 세션이 시작되면 (runId가 생성되면) 분석 섹션으로 스크롤
+  useEffect(() => {
+    if (analysis.runId && analysisSectionRef.current && isAnalyzing) {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          if (analysisSectionRef.current) {
+            analysisSectionRef.current.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        }, 100);
+      });
+    }
+  }, [analysis.runId, isAnalyzing]);
 
   // Analytics의 4단계가 모두 완료되면 완료 섹션 표시
   useEffect(() => {
@@ -407,27 +435,13 @@ export default function Home() {
                 </section>
               )}
 
-              {/* 분석 진행 중 - 분석이 시작되면 표시 */}
-              {isAnalyzing && (
+              {/* 분석 진행 중 - 질문 시작 전 Analytics 단계만 표시 */}
+              {isAnalyzing && !analysis.runId && !showPersonaQuestions && (
                 <section
                   ref={analysisSectionRef}
                   className="min-h-screen flex items-center justify-center py-12"
                 >
-                  {(() => {
-                    // 런 시작 전(업로드/전처리/역할·질문 제안 단계)은 기존 Analytics 표시
-                    if (!analysis.runId) {
-                      return <Analytics progress={analysisProgress} />;
-                    }
-                    // 런 시작 후에는 세션 단계 진행 표시 (스텝 계산은 컴포넌트 내부에서 수행)
-                    return (
-                      <SessionProgress
-                        progress={analysisProgress}
-                        availableWorkers={analysis.availableWorkers}
-                        workerStatuses={analysis.workerStatuses}
-                        attempt={analysis.runAttempt}
-                      />
-                    );
-                  })()}
+                  <Analytics progress={analysisProgress} />
                 </section>
               )}
 
@@ -464,7 +478,7 @@ export default function Home() {
               )}
 
               {/* 역할 선택 또는 질문 응답 단계 */}
-              {showPersonaQuestions && !analysis.runId && (
+              {showPersonaQuestions && (
                 <section
                   ref={questionsSectionRef}
                   className="min-h-screen flex items-center justify-center py-12"
@@ -489,6 +503,21 @@ export default function Home() {
                       skipQuestion={skipQuestion}
                     />
                   )}
+                </section>
+              )}
+
+              {/* 분석 진행 중 - 질문 완료 후 질문 섹션 바로 아래에 생성 */}
+              {isAnalyzing && analysis.runId && showPersonaQuestions && (
+                <section
+                  ref={analysisSectionRef}
+                  className="min-h-screen flex items-center justify-center py-12"
+                >
+                  <SessionProgress
+                    progress={analysisProgress}
+                    availableWorkers={analysis.availableWorkers}
+                    workerStatuses={analysis.workerStatuses}
+                    attempt={analysis.runAttempt}
+                  />
                 </section>
               )}
             </main>

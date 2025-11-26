@@ -1,6 +1,6 @@
 import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import Header from "../_shared/layout/Header";
+import TopNavigation from "../_shared/components/TopNavigation";
 import Title from "./components/Title";
 import Footer from "./components/Footer";
 import { formatKstDateTime } from "../../lib/date";
@@ -107,8 +107,8 @@ export default function Result() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-primary-100">
-      <Header />
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-primary-100 pt-10">
+      <TopNavigation />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Title

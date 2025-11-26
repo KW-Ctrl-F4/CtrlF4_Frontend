@@ -118,31 +118,6 @@ export default function SignIn() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="rememberMe"
-                name="rememberMe"
-                checked={formData.rememberMe}
-                onChange={handleInputChange}
-                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-              />
-              <label
-                htmlFor="rememberMe"
-                className="ml-2 text-sm text-gray-600 cursor-pointer"
-              >
-                로그인 상태 유지
-              </label>
-            </div>
-            <Link
-              to="#"
-              className="text-sm text-primary-600 hover:text-primary-700 cursor-pointer whitespace-nowrap"
-            >
-              비밀번호 찾기
-            </Link>
-          </div>
-
           <button
             type="submit"
             disabled={isLoading}

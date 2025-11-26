@@ -12,12 +12,12 @@ export default function SessionProgress({
   availableWorkers,
   workerStatuses,
   attempt,
-  title = "세션 실행 중...",
-  description = "AI가 답변/요약/검증/위험 요소 점검 단계를 수행하고 있습니다. 잠시만 기다려주세요.",
+  title = "분석 중이에요!",
+  description = "AI가 열심히 분석하고 있어요. 조금만 기다려주세요!",
 }: SessionProgressProps) {
   const computedDescription =
     typeof attempt === "number" && attempt >= 2
-      ? "좀 더 나은 분석을 위해 재분석 중입니다. 잠시만 기다려주세요."
+      ? "더 깊이 파고들고 있어요. 조금만 더 기다려주세요!"
       : description;
   const toLabel = (w: string) => {
     if (w === "qa") return "답변 생성";
@@ -42,17 +42,13 @@ export default function SessionProgress({
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 max-w-2xl w-full">
       <div className="text-center mb-8">
-        <div className="w-16 h-16 mx-auto mb-6 bg-primary-100 rounded-full flex items-center justify-center relative">
-          <div className="w-12 h-12 border-4 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-
         <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-          {title || "분석을 진행하고 있어요"}
+          {title || "분석 중이에요!"}
         </h2>
 
         <p className="text-lg text-gray-600 mb-4">
           {computedDescription ||
-            "AI가 계약서를 분석하고 있어요. 잠시만 기다려주세요"}
+            "AI가 열심히 분석하고 있어요. 조금만 기다려주세요!"}
         </p>
 
         {/* 점 애니메이션 */}
