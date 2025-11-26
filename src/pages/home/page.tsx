@@ -8,6 +8,7 @@ import RoleSelector from "./components/RoleSelector";
 import { PERSONA_QUESTIONS } from "../../mocks";
 import { useDocumentAnalysis } from "../../lib/api/hooks";
 import { useAuth } from "../../contexts/AuthContext";
+import TopNavigation from "../_shared/components/TopNavigation";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -202,6 +203,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-primary-100">
+      <TopNavigation />
+
       {/* 랜딩 화면 - 항상 표시 (로그인 상태에서도) */}
       <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl w-full text-center">
