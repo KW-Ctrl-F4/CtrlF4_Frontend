@@ -25,6 +25,8 @@ export default function Home() {
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [showCompletionSection, setShowCompletionSection] = useState(false);
+  const [showAnalysisCompleteSection, setShowAnalysisCompleteSection] =
+    useState(false);
 
   const analysis = useDocumentAnalysis({ role: "user", pollIntervalMs: 5000 });
   const hasNavigatedRef = useRef(false);
@@ -33,6 +35,7 @@ export default function Home() {
   const analysisSectionRef = useRef<HTMLDivElement>(null);
   const completionSectionRef = useRef<HTMLDivElement>(null);
   const questionsSectionRef = useRef<HTMLDivElement>(null);
+  const analysisCompleteSectionRef = useRef<HTMLDivElement>(null);
 
   // 파일 업로드 핸들러
   const handleFilesChange = (files: File[]) => {
@@ -178,14 +181,42 @@ export default function Home() {
 
   useEffect(() => {
     setAnalysisProgress(analysis.progress);
-    if (analysis.results && !hasNavigatedRef.current) {
-      hasNavigatedRef.current = true;
+    if (
+      analysis.results &&
+      !hasNavigatedRef.current &&
+      !showAnalysisCompleteSection
+    ) {
+      // 분석 완료 - 완료 섹션 표시
       setIsAnalyzing(false);
+      setShowAnalysisCompleteSection(true);
+    }
+  }, [analysis.progress, analysis.results, showAnalysisCompleteSection]);
+
+  // 분석 완료 섹션이 표시되면 부드럽게 스크롤
+  useEffect(() => {
+    if (showAnalysisCompleteSection && analysisCompleteSectionRef.current) {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          if (analysisCompleteSectionRef.current) {
+            analysisCompleteSectionRef.current.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        }, 100);
+      });
+    }
+  }, [showAnalysisCompleteSection]);
+
+  // 결과보러가기 버튼 클릭 핸들러
+  const handleGoToResults = () => {
+    if (analysis.results && analysis.runId) {
+      hasNavigatedRef.current = true;
       navigate("/result", {
         state: { results: analysis.results, runId: analysis.runId },
       });
     }
-  }, [analysis.progress, analysis.results, navigate]);
+  };
 
   // 분석 세션이 시작되면 (runId가 생성되면) 분석 섹션으로 스크롤
   useEffect(() => {
@@ -518,6 +549,38 @@ export default function Home() {
                     workerStatuses={analysis.workerStatuses}
                     attempt={analysis.runAttempt}
                   />
+                </section>
+              )}
+
+              {/* 분석 완료 섹션 - 분석이 완료되면 맨 밑에 생성 */}
+              {showAnalysisCompleteSection && (
+                <section
+                  ref={analysisCompleteSectionRef}
+                  className="min-h-screen flex items-center justify-center py-12"
+                >
+                  <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 max-w-2xl w-full">
+                    <div className="text-center mb-8">
+                      <div className="w-16 h-16 mx-auto mb-6 bg-green-100 rounded-full flex items-center justify-center">
+                        <i className="ri-checkbox-circle-line text-3xl text-green-600"></i>
+                      </div>
+                      <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                        분석 완료! 🎉
+                      </h2>
+                      <p className="text-lg text-gray-600 mb-8">
+                        계약서 분석이 끝났어요! 결과를 확인해볼까요?
+                      </p>
+                    </div>
+
+                    <div className="flex justify-center">
+                      <button
+                        onClick={handleGoToResults}
+                        className="px-8 py-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors cursor-pointer whitespace-nowrap text-lg font-medium shadow-lg"
+                      >
+                        <i className="ri-arrow-right-line mr-2"></i>
+                        결과보러 가기
+                      </button>
+                    </div>
+                  </div>
                 </section>
               )}
             </main>
