@@ -104,11 +104,11 @@ export default function Analytics({ progress }: AnalyticsProps) {
       <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 max-w-2xl w-full">
         <div className="text-center mb-8">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            문서를 분석하고 있어요
+            문서를 확인하고 있어요
           </h2>
 
           <p className="text-lg text-gray-600 mb-4">
-            업로드한 문서를 분석하고 있어요. 잠시만 기다려주세요!
+            업로드한 문서를 확인하고 있어요. 잠시만 기다려주세요!
           </p>
         </div>
 

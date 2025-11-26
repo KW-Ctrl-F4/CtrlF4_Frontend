@@ -24,12 +24,14 @@ export default function Home() {
   const [questionKeys, setQuestionKeys] = useState<string[]>([]);
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [showCompletionSection, setShowCompletionSection] = useState(false);
 
   const analysis = useDocumentAnalysis({ role: "user", pollIntervalMs: 5000 });
   const hasNavigatedRef = useRef(false);
   const uploadSectionRef = useRef<HTMLDivElement>(null);
   const confirmSectionRef = useRef<HTMLDivElement>(null);
   const analysisSectionRef = useRef<HTMLDivElement>(null);
+  const completionSectionRef = useRef<HTMLDivElement>(null);
 
   // 파일 업로드 핸들러
   const handleFilesChange = (files: File[]) => {
@@ -171,6 +173,58 @@ export default function Home() {
       });
     }
   }, [analysis.progress, analysis.results, navigate]);
+
+  // Analytics의 4단계가 모두 완료되면 완료 섹션 표시
+  useEffect(() => {
+    // Analytics 단계는 progress가 55 이상이면 100%로 표시됨
+    if (
+      isAnalyzing &&
+      !analysis.runId &&
+      analysisProgress >= 55 &&
+      !showCompletionSection
+    ) {
+      // 0.3초 후에 완료 섹션 표시
+      const timer = setTimeout(() => {
+        setShowCompletionSection(true);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isAnalyzing, analysis.runId, analysisProgress, showCompletionSection]);
+
+  // 완료 섹션이 표시되면 부드럽게 스크롤
+  useEffect(() => {
+    if (showCompletionSection && completionSectionRef.current) {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          if (completionSectionRef.current) {
+            completionSectionRef.current.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        }, 100);
+      });
+    }
+  }, [showCompletionSection]);
+
+  // "답변하러 가기" 버튼 클릭 핸들러
+  const handleGoToQuestions = () => {
+    setShowCompletionSection(false);
+    // suggest가 이미 수신되었으면 PersonaQuestions 표시
+    if (analysis.suggestedQuestions && analysis.suggestedQuestions.length > 0) {
+      const filtered = (analysis.suggestedQuestions || []).filter(
+        (q: any) => q && q.key !== "role"
+      );
+      const suggestQs = filtered.map((q: any) => q.text);
+      const keys = filtered.map((q: any) => q.key);
+      const picked = suggestQs.slice(0, 2);
+      setQuestionKeys(
+        keys.slice(0, 2).length > 0 ? keys.slice(0, 2) : ["question", "focus"]
+      );
+      setQuestions(picked.length > 0 ? picked : PERSONA_QUESTIONS.slice(0, 2));
+      setShowPersonaQuestions(true);
+    }
+  };
 
   // suggest 수신 후 질문/역할 단계 시작
   useEffect(() => {
@@ -403,6 +457,38 @@ export default function Home() {
                       />
                     );
                   })()}
+                </section>
+              )}
+
+              {/* 문서 확인 완료 섹션 - Analytics 4단계 완료 후 표시 */}
+              {showCompletionSection && (
+                <section
+                  ref={completionSectionRef}
+                  className="min-h-screen flex items-center justify-center py-12"
+                >
+                  <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 max-w-2xl w-full">
+                    <div className="text-center mb-8">
+                      <div className="w-16 h-16 mx-auto mb-6 bg-green-100 rounded-full flex items-center justify-center">
+                        <i className="ri-checkbox-circle-line text-3xl text-green-600"></i>
+                      </div>
+                      <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                        문서 확인을 완료했어요!
+                      </h2>
+                      <p className="text-lg text-gray-600 mb-8">
+                        더 정확한 분석을 위해 몇 가지 질문을 드릴게요
+                      </p>
+                    </div>
+
+                    <div className="flex justify-center">
+                      <button
+                        onClick={handleGoToQuestions}
+                        className="px-8 py-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors cursor-pointer whitespace-nowrap text-lg font-medium shadow-lg"
+                      >
+                        <i className="ri-arrow-right-line mr-2"></i>
+                        답변하기
+                      </button>
+                    </div>
+                  </div>
                 </section>
               )}
             </main>
