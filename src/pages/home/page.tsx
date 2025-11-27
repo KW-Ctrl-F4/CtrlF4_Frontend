@@ -135,11 +135,24 @@ export default function Home() {
     } else {
       // 모든 질문 완료 - 분석 시작
       // 질문 섹션은 유지하고, 아래에 분석 섹션 생성
-      // 런 시작 직후에도 로딩이 확실히 보이도록 보장
+      // 즉시 분석 상태로 전환하여 딜레이 없이 SessionProgress 표시
       setIsAnalyzing(true);
       // 세션 프로세스는 0%부터 시작
       setAnalysisProgress(0);
-      // 의도 선택 완료 후 실제 분석 시작
+
+      // 분석 섹션으로 즉시 스크롤 (질문 섹션 아래에 생성됨)
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          if (analysisSectionRef.current) {
+            analysisSectionRef.current.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        }, 100);
+      });
+
+      // 의도 선택 완료 후 실제 분석 시작 (백그라운드에서 실행)
       try {
         const a1 = newAnswers[1] || "";
         const a2 = newAnswers[2] || "";
@@ -153,25 +166,22 @@ export default function Home() {
             .map((s) => s.trim())
             .filter(Boolean),
         };
-        await analysis.submitAnswers(answersMap);
-        await analysis.startAnalysis(
-          {
-            question: String(answersMap[k1] || ""),
-            focus: (answersMap[k2] as string[]) || [],
-          },
-          selectedRole || undefined
-        );
-        // 분석 섹션으로 스크롤 (질문 섹션 아래에 생성됨)
-        requestAnimationFrame(() => {
-          setTimeout(() => {
-            if (analysisSectionRef.current) {
-              analysisSectionRef.current.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-              });
-            }
-          }, 100);
-        });
+        // 비동기로 실행하되 await하지 않음 - 즉시 다음 단계로 진행
+        analysis
+          .submitAnswers(answersMap)
+          .then(() => {
+            return analysis.startAnalysis(
+              {
+                question: String(answersMap[k1] || ""),
+                focus: (answersMap[k2] as string[]) || [],
+              },
+              selectedRole || undefined
+            );
+          })
+          .catch((e: any) => {
+            setError(e?.message ?? "분석 시작 실패");
+            setIsAnalyzing(false);
+          });
       } catch (e: any) {
         setError(e?.message ?? "분석 시작 실패");
         setIsAnalyzing(false);
@@ -538,7 +548,7 @@ export default function Home() {
               )}
 
               {/* 분석 진행 중 - 질문 완료 후 질문 섹션 바로 아래에 생성 */}
-              {isAnalyzing && analysis.runId && showPersonaQuestions && (
+              {isAnalyzing && showPersonaQuestions && (
                 <section
                   ref={analysisSectionRef}
                   className="min-h-screen flex items-center justify-center py-12"
