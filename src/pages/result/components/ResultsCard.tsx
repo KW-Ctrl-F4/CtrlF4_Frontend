@@ -17,7 +17,6 @@ interface ResultsCardProps {
   qaQuestion?: string;
   qaAnswer?: string;
   qaFocus?: string[];
-  qaAnchors?: AnchorItem[];
 }
 
 type TabType = "qa" | "risk" | "summary";
@@ -34,7 +33,6 @@ export default function ResultsCard({
   qaQuestion,
   qaAnswer,
   qaFocus = [],
-  qaAnchors = [],
 }: ResultsCardProps) {
   // 사용 가능한 탭 목록 생성 (Q&A, Risk, Summary 순서)
   const availableTabs: { type: TabType; label: string; hasContent: boolean }[] =
@@ -53,29 +51,47 @@ export default function ResultsCard({
   const renderActiveContent = () => {
     switch (activeTab) {
       case "qa":
-        return hasQA ? (
+        if (!hasQA || (!qaQuestion && !qaAnswer)) {
+          return (
+            <div className="text-center py-12 text-gray-500">
+              <p>Q&A 결과가 없습니다.</p>
+            </div>
+          );
+        }
+        return (
           <QACard
             embedded
             title="Q&A"
             question={qaQuestion}
             answer={qaAnswer}
             focus={qaFocus}
-            anchors={qaAnchors}
           />
-        ) : null;
+        );
       case "risk":
-        return hasRisk ? (
-          <RiskCard embedded title="Risk" items={riskItems} />
-        ) : null;
+        if (!hasRisk || !riskItems || riskItems.length === 0) {
+          return (
+            <div className="text-center py-12 text-gray-500">
+              <p>위험 요소 분석 결과가 없습니다.</p>
+            </div>
+          );
+        }
+        return <RiskCard embedded title="Risk" items={riskItems} />;
       case "summary":
-        return hasSummary ? (
+        if (!hasSummary || !summaryText) {
+          return (
+            <div className="text-center py-12 text-gray-500">
+              <p>요약 결과가 없습니다.</p>
+            </div>
+          );
+        }
+        return (
           <SummaryCard
             embedded
             title="Summary"
             summary={summaryText}
             anchors={summaryAnchors}
           />
-        ) : null;
+        );
       default:
         return null;
     }
