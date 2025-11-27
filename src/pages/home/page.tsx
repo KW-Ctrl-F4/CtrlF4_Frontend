@@ -349,7 +349,7 @@ export default function Home() {
             <div className="w-12 h-12 bg-primary-600 rounded-lg flex items-center justify-center">
               <i className="ri-search-line text-white text-2xl"></i>
             </div>
-            <span className="text-3xl font-bold text-gray-900">CtrlF4</span>
+            <span className="text-3xl font-bold text-gray-900">ConSure</span>
           </div>
 
           {/* 메인 메시지 */}

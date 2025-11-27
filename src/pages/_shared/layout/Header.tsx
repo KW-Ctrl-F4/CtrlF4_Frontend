@@ -16,7 +16,7 @@ export default function Header() {
             <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
               <i className="ri-search-line text-white text-lg"></i>
             </div>
-            <span className="text-xl font-semibold text-gray-900">CtrlF4</span>
+            <span className="text-xl font-semibold text-gray-900">ConSure</span>
           </div>
           <div className="flex items-center space-x-6">
             {!isAuthenticated ? (

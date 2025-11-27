@@ -14,7 +14,7 @@ export default function Result() {
     (location.state as any)?.runId ||
     (() => {
       try {
-        return window.sessionStorage.getItem("ctrlf4:lastRunId") || undefined;
+        return window.sessionStorage.getItem("consure:lastRunId") || undefined;
       } catch {
         return undefined;
       }

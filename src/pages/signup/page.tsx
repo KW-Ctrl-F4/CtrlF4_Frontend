@@ -68,7 +68,7 @@ export default function SignUp() {
             <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
               <i className="ri-search-line text-white text-xl"></i>
             </div>
-            <span className="text-2xl font-bold text-gray-900">CtrlF4</span>
+            <span className="text-2xl font-bold text-gray-900">ConSure</span>
           </Link>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">회원가입</h1>
           <p className="text-gray-600">새 계정을 만들어 시작하세요</p>

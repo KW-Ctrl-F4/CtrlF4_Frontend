@@ -65,7 +65,7 @@ export default function SignIn() {
             <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
               <i className="ri-search-line text-white text-xl"></i>
             </div>
-            <span className="text-2xl font-bold text-gray-900">CtrlF4</span>
+            <span className="text-2xl font-bold text-gray-900">ConSure</span>
           </Link>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">로그인</h1>
           <p className="text-gray-600">계정에 로그인하여 계속하세요</p>
