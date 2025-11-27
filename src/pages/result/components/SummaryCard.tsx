@@ -42,7 +42,7 @@ export default function SummaryCard({
 
   const Content = (
     <div className="relative p-8">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">{title}</h2>
+      {!embedded && <h2 className="text-2xl font-bold text-gray-900 mb-6">{title}</h2>}
       <div className="space-y-3">
         {sentences.map((sentence, idx) => {
           const isClicked = clickedIndex === idx;

@@ -58,7 +58,7 @@ export default function QACard({
 
   const Content = (
     <div className="relative p-8">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">{title}</h2>
+      {!embedded && <h2 className="text-2xl font-bold text-gray-900 mb-6">{title}</h2>}
       <div className="space-y-3">
         {question && (
           <div className="rounded-md bg-gray-50 p-3">
