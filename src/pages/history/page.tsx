@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import Header from "../_shared/layout/Header";
 import HistoryItem from "./components/HistoryItem";
 import NoItem from "./components/NoItem";
 import Title from "./components/Title";
 import { useAuth } from "../../contexts/AuthContext";
 import { dataAPI, type HistoryItem as ApiHistoryItem } from "../../hooks/data";
+import TopNavigation from "../_shared/components/TopNavigation";
 
 interface HistoryItem {
   s3_key: string;
@@ -112,7 +112,7 @@ export default function History() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-primary-100">
-      <Header />
+      <TopNavigation />
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

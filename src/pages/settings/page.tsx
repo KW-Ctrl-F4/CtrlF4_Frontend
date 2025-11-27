@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import Header from "../_shared/layout/Header";
 import Sidebar from "./components/Sidebar";
 import Profile from "./components/Profile";
 import Password from "./components/Password";
@@ -9,6 +8,7 @@ import Title from "./components/Title";
 import { useAuth } from "../../contexts/AuthContext";
 import { authAPI } from "../../hooks/auth";
 import DeleteAccountModal from "./components/DeleteAccountModal";
+import TopNavigation from "../_shared/components/TopNavigation";
 
 type TabType = "profile" | "password" | "notifications" | "account";
 
@@ -185,7 +185,7 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-primary-100">
-      <Header />
+      <TopNavigation />
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

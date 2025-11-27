@@ -176,7 +176,7 @@ export function useDocumentAnalysis({
                 const { runId } = await postRun(sessionId!);
 				setRunId(runId);
 				try {
-					window.sessionStorage.setItem("ctrlf4:lastRunId", runId);
+					window.sessionStorage.setItem("consure:lastRunId", runId);
 				} catch {}
 
 				// 9) results poll (상태/availableWorkers 기반 종료, 타임아웃 가드)

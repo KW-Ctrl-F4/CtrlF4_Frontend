@@ -65,7 +65,7 @@ export default function SignIn() {
             <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
               <i className="ri-search-line text-white text-xl"></i>
             </div>
-            <span className="text-2xl font-bold text-gray-900">CtrlF4</span>
+            <span className="text-2xl font-bold text-gray-900">ConSure</span>
           </Link>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">로그인</h1>
           <p className="text-gray-600">계정에 로그인하여 계속하세요</p>
@@ -116,31 +116,6 @@ export default function SignIn() {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="비밀번호를 입력하세요"
             />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="rememberMe"
-                name="rememberMe"
-                checked={formData.rememberMe}
-                onChange={handleInputChange}
-                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-              />
-              <label
-                htmlFor="rememberMe"
-                className="ml-2 text-sm text-gray-600 cursor-pointer"
-              >
-                로그인 상태 유지
-              </label>
-            </div>
-            <Link
-              to="#"
-              className="text-sm text-primary-600 hover:text-primary-700 cursor-pointer whitespace-nowrap"
-            >
-              비밀번호 찾기
-            </Link>
           </div>
 
           <button
