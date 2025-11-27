@@ -26,14 +26,21 @@ export default function SessionProgress({
     if (w === "risk") return "위험 요소 점검";
     return w;
   };
+  // 기본값에 모든 가능한 worker 포함 (시작부터 4개 모두 표시)
+  const defaultWorkers = ["qa", "summarizer", "verifier", "risk"];
+
+  // availableWorkers가 있으면 사용하고, 없으면 workerStatuses의 키를 사용
   const discoveredWorkers =
     (availableWorkers || []).length > 0
       ? (availableWorkers as string[])
       : Object.keys(workerStatuses || {});
+
+  // discoveredWorkers가 비어있으면 기본값 사용
+  // discoveredWorkers가 있더라도 기본값과 병합하여 항상 4개 모두 표시
   const workers =
     discoveredWorkers.length > 0
-      ? discoveredWorkers
-      : ["qa", "summarizer", "verifier"];
+      ? [...new Set([...defaultWorkers, ...discoveredWorkers])] // 중복 제거하며 병합
+      : defaultWorkers;
   const steps = workers.map((w: string) => ({
     id: w,
     label: toLabel(w),
