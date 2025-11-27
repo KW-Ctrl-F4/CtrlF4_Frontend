@@ -85,18 +85,18 @@ export default function Analytics({ progress }: AnalyticsProps) {
             /* 1) 안쪽 배경 (흰색) - padding-box 영역까지만 칠함 */
             linear-gradient(white, white) padding-box,
             
-            /* 2) 테두리 그라데이션 (오렌지 계열) - border-box 영역까지 칠함 */
+            /* 2) 테두리 그라데이션 (Primary 네이비 블루 계열) - border-box 영역까지 칠함 */
             conic-gradient(
               from var(--border-angle),
-              oklch(65% 0.18 25deg),   /* 어두운 오렌지-레드 */
-              oklch(70% 0.20 35deg),   /* 오렌지 */
-              oklch(75% 0.22 45deg),   /* 밝은 오렌지 */
-              oklch(80% 0.20 55deg),   /* 노란 오렌지 */
-              oklch(85% 0.18 65deg),   /* 황금색 */
-              oklch(80% 0.20 55deg),   /* 노란 오렌지 */
-              oklch(75% 0.22 45deg),   /* 밝은 오렌지 */
-              oklch(70% 0.20 35deg),   /* 오렌지 */
-              oklch(65% 0.18 25deg)    /* 어두운 오렌지-레드로 돌아옴 */
+              oklch(35% 0.15 250deg),   /* 어두운 네이비 블루 */
+              oklch(45% 0.18 240deg),   /* 네이비 블루 */
+              oklch(55% 0.20 230deg),   /* 밝은 블루 */
+              oklch(65% 0.22 220deg),   /* 시안 블루 */
+              oklch(70% 0.20 210deg),   /* 밝은 시안 */
+              oklch(65% 0.22 220deg),   /* 시안 블루 */
+              oklch(55% 0.20 230deg),   /* 밝은 블루 */
+              oklch(45% 0.18 240deg),   /* 네이비 블루 */
+              oklch(35% 0.15 250deg)    /* 어두운 네이비 블루로 돌아옴 */
             ) 
             border-box;
         }
