@@ -19,7 +19,7 @@ interface ResultsCardProps {
   qaFocus?: string[];
 }
 
-type TabType = "qa" | "risk" | "summary";
+type TabType = "qa" | "risk" | "revision" | "summary";
 
 export default function ResultsCard({
   hasSummary,
@@ -34,12 +34,18 @@ export default function ResultsCard({
   qaAnswer,
   qaFocus = [],
 }: ResultsCardProps) {
-  // 사용 가능한 탭 목록 생성 (Q&A, Risk, Summary 순서)
+  // 사용 가능한 탭 목록 생성 (Q&A > Risk > Revision > Summary 순서)
   const availableTabs: { type: TabType; label: string; hasContent: boolean }[] =
     [];
   if (hasQA) availableTabs.push({ type: "qa", label: "Q&A", hasContent: true });
   if (hasRisk)
     availableTabs.push({ type: "risk", label: "Risk", hasContent: true });
+  if (hasRevision)
+    availableTabs.push({
+      type: "revision",
+      label: "Revision",
+      hasContent: true,
+    });
   if (hasSummary)
     availableTabs.push({ type: "summary", label: "Summary", hasContent: true });
 
@@ -76,6 +82,15 @@ export default function ResultsCard({
           );
         }
         return <RiskCard embedded title="Risk" items={riskItems} />;
+      case "revision":
+        if (!hasRevision || !revisions || revisions.length === 0) {
+          return (
+            <div className="text-center py-12 text-gray-500">
+              <p>수정 제안 결과가 없습니다.</p>
+            </div>
+          );
+        }
+        return <RevisionCard embedded title="Revision" revisions={revisions} />;
       case "summary":
         if (!hasSummary || !summaryText) {
           return (
@@ -125,13 +140,6 @@ export default function ResultsCard({
 
       {/* 활성 탭 컨텐츠 */}
       <div className="p-4 md:p-6">{renderActiveContent()}</div>
-
-      {/* Revision은 탭 밖에 별도로 표시 (있는 경우) */}
-      {hasRevision && (
-        <section id="section-revision" className="border-t border-gray-100">
-          <RevisionCard embedded title="Revision" revisions={revisions} />
-        </section>
-      )}
     </div>
   );
 }

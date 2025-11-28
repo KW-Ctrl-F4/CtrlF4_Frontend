@@ -18,7 +18,7 @@ export default function RevisionCard({
 }: RevisionCardProps) {
   const Content = (
     <div className="relative p-8">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">{title}</h2>
+      {!embedded && <h2 className="text-2xl font-bold text-gray-900 mb-6">{title}</h2>}
       <div className="space-y-5">
         {revisions.map((rev, idx) => {
           return (

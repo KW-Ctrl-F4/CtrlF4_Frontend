@@ -24,9 +24,11 @@ export default function SessionProgress({
     if (w === "summarizer") return "요약 생성";
     if (w === "verifier") return "검증";
     if (w === "risk") return "위험 요소 점검";
+    if (w === "revision") return "수정본 생성";
     return w;
   };
   // 기본값에 모든 가능한 worker 포함 (시작부터 4개 모두 표시)
+  // revision은 qa에서 "수정" 요청이 있을 때만 나타나므로 기본값에는 포함하지 않음
   const defaultWorkers = ["qa", "summarizer", "verifier", "risk"];
 
   // availableWorkers가 있으면 사용하고, 없으면 workerStatuses의 키를 사용
