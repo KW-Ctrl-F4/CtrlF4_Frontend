@@ -67,6 +67,7 @@ export default function Result() {
     qaQuestion,
     qaAnswer,
     qaFocus,
+    qaAnchors,
     hasSummary,
     hasRisk,
     hasRevision,
@@ -139,6 +140,7 @@ export default function Result() {
             qaQuestion={qaQuestion}
             qaAnswer={qaAnswer}
             qaFocus={qaFocus}
+            qaAnchors={Array.isArray(qaAnchors) ? qaAnchors : []}
           />
         )}
 

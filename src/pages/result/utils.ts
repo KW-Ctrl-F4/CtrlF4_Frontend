@@ -62,7 +62,21 @@ export function extractResultSections(raw: any) {
 	const qaQuestion: string | undefined = raw?.results?.qa?.question;
 	const qaAnswer: string | undefined = raw?.results?.qa?.answer;
 	const qaFocus: string[] = Array.isArray(raw?.results?.qa?.focus) ? raw.results.qa.focus : [];
-	const qaAnchors: AnchorItem[] | undefined = raw?.results?.qa?.anchors;
+	// QA anchors는 문자열 배열일 수도 있고 객체 배열일 수도 있음
+	const qaAnchorsRaw: any = raw?.results?.qa?.anchors;
+	const qaAnchors: AnchorItem[] = Array.isArray(qaAnchorsRaw)
+		? qaAnchorsRaw.map((a: any, idx: number) => {
+				// 문자열인 경우
+				if (typeof a === "string") {
+					return { title: a, id: idx };
+				}
+				// 이미 객체인 경우
+				return {
+					id: a?.id ?? idx,
+					title: a?.title ?? a,
+				};
+		  })
+		: [];
 
 	// Flags
 	const hasSummary = Boolean(summaryText);

@@ -17,6 +17,7 @@ interface ResultsCardProps {
   qaQuestion?: string;
   qaAnswer?: string;
   qaFocus?: string[];
+  qaAnchors?: AnchorItem[];
 }
 
 type TabType = "qa" | "risk" | "revision" | "summary";
@@ -33,6 +34,7 @@ export default function ResultsCard({
   qaQuestion,
   qaAnswer,
   qaFocus = [],
+  qaAnchors = [],
 }: ResultsCardProps) {
   // 사용 가능한 탭 목록 생성 (Q&A > Risk > Revision > Summary 순서)
   const availableTabs: { type: TabType; label: string; hasContent: boolean }[] =
@@ -71,6 +73,7 @@ export default function ResultsCard({
             question={qaQuestion}
             answer={qaAnswer}
             focus={qaFocus}
+            anchors={qaAnchors}
           />
         );
       case "risk":
