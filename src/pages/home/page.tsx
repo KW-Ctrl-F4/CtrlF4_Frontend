@@ -4,7 +4,6 @@ import FileUploader from "./components/FileUploader";
 import PersonaQuestions from "./components/PersonaQuestions";
 import SessionProgress from "./components/SessionProgress";
 import Analytics from "./components/Analytics";
-import RoleSelector from "./components/RoleSelector";
 import { PERSONA_QUESTIONS } from "../../mocks";
 import { useDocumentAnalysis } from "../../lib/api/hooks";
 import { useAuth } from "../../contexts/AuthContext";
@@ -524,26 +523,22 @@ export default function Home() {
                   ref={questionsSectionRef}
                   className="min-h-screen flex items-center justify-center py-12"
                 >
-                  {selectedRole === null ? (
-                    <RoleSelector
-                      roles={
-                        (analysis.suggestedRoles || []).length > 0
-                          ? analysis.suggestedRoles
-                          : ["가맹본부", "가맹점"]
-                      }
-                      onSelect={(role) => {
-                        setSelectedRole(role);
-                        setAnswers([role]);
-                      }}
-                    />
-                  ) : (
-                    <PersonaQuestions
-                      questions={questions}
-                      currentQuestionIndex={currentQuestionIndex}
-                      handleAnswerSubmit={handleAnswerSubmit}
-                      skipQuestion={skipQuestion}
-                    />
-                  )}
+                  <PersonaQuestions
+                    questions={questions}
+                    currentQuestionIndex={currentQuestionIndex}
+                    handleAnswerSubmit={handleAnswerSubmit}
+                    skipQuestion={skipQuestion}
+                    selectedRole={selectedRole}
+                    roles={
+                      (analysis.suggestedRoles || []).length > 0
+                        ? analysis.suggestedRoles
+                        : ["가맹본부", "가맹점"]
+                    }
+                    onRoleSelect={(role) => {
+                      setSelectedRole(role);
+                      setAnswers([role]);
+                    }}
+                  />
                 </section>
               )}
 
