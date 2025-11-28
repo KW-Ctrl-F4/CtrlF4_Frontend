@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_ANALYZE_BASE as string;
+const baseURL = import.meta.env.VITE_ANALYZE_BASE as string || '/api';
 
 // 디버깅: 환경변수 값 확인
 if (typeof window !== "undefined") {
