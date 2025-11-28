@@ -1,10 +1,10 @@
 import { useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import TopNavigation from "../_shared/components/TopNavigation";
 import Title from "./components/Title";
 import Footer from "./components/Footer";
 import { formatKstDateTime } from "../../lib/date";
-import { getRunResults, postRunRevision } from "../../lib/api/client";
+import { getRunResults, postRunRevision, postRunReport, fetchRunReport } from "../../lib/api/client";
 import ResultsCard from "./components/ResultsCard";
 import { extractResultSections } from "./utils";
 
@@ -23,6 +23,8 @@ export default function Result() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isReanalyzing, setIsReanalyzing] = useState<boolean>(false);
+  const [reportId, setReportId] = useState<string | null>(null);
+  const lastReportRunIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -47,8 +49,59 @@ export default function Result() {
     };
   }, [baseRunId]);
 
-  const downloadReport = () => {
-    alert("분석 리포트를 다운로드합니다.");
+  // 결과를 불러온 뒤 해당 runId 기준으로 리포트를 1회 생성
+  useEffect(() => {
+    const currentRunId = String((raw as any)?.run?.id ?? baseRunId ?? "");
+    if (!currentRunId) return;
+    if (lastReportRunIdRef.current === currentRunId) return;
+    lastReportRunIdRef.current = currentRunId;
+    setReportId(null);
+    (async () => {
+      try {
+        const res = await postRunReport(currentRunId);
+        setReportId(String(res.reportId));
+      } catch (e) {
+        console.error(e);
+        // 실패했어도 버튼 클릭 시 수동 재시도 가능
+      }
+    })();
+  }, [baseRunId, raw]);
+
+  const downloadReport = async () => {
+    const targetRunId = String((raw as any)?.run?.id ?? baseRunId ?? "");
+    if (!targetRunId) {
+      alert("유효한 실행 ID(runId)를 찾을 수 없습니다.");
+      return;
+    }
+    try {
+      if (!reportId) {
+        alert("리포트를 생성 중입니다. 잠시 후 다시 시도해주세요.");
+        return;
+      }
+      // 리포트 다운로드 정보 조회(GET)
+      const result = await fetchRunReport(targetRunId, reportId);
+
+      if (result.kind === "url") {
+        // 서명 URL 등 직접 접근 가능한 경우 새 탭 열기
+        window.open(result.url, "_blank", "noopener,noreferrer");
+        return;
+      }
+
+      // blob 응답인 경우 클라이언트에서 저장
+      const blobUrl = URL.createObjectURL(result.blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download =
+        result.fileName ||
+        `report_${baseRunId}${result.contentType?.includes("pdf") ? ".pdf" : ""}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
+    } catch (e: any) {
+      console.error(e);
+      alert(e?.message || "리포트 다운로드에 실패했습니다.");
+    }
   };
 
   const pageTitle: string =

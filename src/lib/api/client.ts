@@ -178,3 +178,85 @@ export async function postRunRevision(runId: string) {
 
     return { runId: String(nextRunId) } as RunRevisionResponse;
 }
+
+// =========================
+// REPORTS (리포트 생성/다운로드)
+// =========================
+
+// 리포트 생성: /runs/{runId}/reports (POST) → reportId 반환 형태를 최대한 정규화
+export async function postRunReport(runId: string): Promise<{ reportId: string }> {
+    const res = await http.post(`/runs/${runId}/reports`);
+    const raw = res?.data ?? {};
+
+    // 바디에서 reportId 후보 탐색
+    let reportId: string | null =
+        (raw?.reportId !== undefined && raw.reportId !== null && String(raw.reportId)) ||
+        (raw?.id !== undefined && raw.id !== null && String(raw.id)) ||
+        null;
+
+    // 헤더에서 보조 탐색
+    if (!reportId) {
+        const headers: any = res?.headers || {};
+        const fromHeader = headers["x-report-id"] || headers["X-Report-Id"];
+        if (fromHeader) reportId = String(fromHeader);
+
+        // Location: /runs/{runId}/reports/{reportId}
+        const location = headers["location"] || headers["Location"];
+        if (!reportId && typeof location === "string") {
+            const m = location.match(/\/runs\/[^/]+\/reports\/([^/]+)/);
+            if (m && m[1]) reportId = m[1];
+        }
+    }
+
+    if (!reportId) {
+        throw new Error("리포트 생성 응답에서 reportId를 찾을 수 없습니다.");
+    }
+    return { reportId };
+}
+
+// 리포트 조회: 우선 JSON으로 presigned URL을 기대하고, 없으면 blob으로 재시도
+export async function fetchRunReport(
+    runId: string,
+    reportId: string
+): Promise<
+    | { kind: "url"; url: string }
+    | { kind: "blob"; blob: Blob; fileName?: string; contentType?: string }
+> {
+    // 1차: JSON으로 URL 탐색
+    try {
+        const jsonRes = await http.get(`/runs/${runId}/reports/${reportId}`);
+        const data: any = jsonRes?.data ?? {};
+        const url: string | undefined =
+            data?.url || data?.downloadUrl || data?.fileUrl || data?.presignedUrl;
+        if (typeof url === "string" && url.length > 0) {
+            return { kind: "url", url };
+        }
+    } catch {
+        // 무시하고 blob 시도
+    }
+
+    // 2차: blob으로 직접 다운로드 시도
+    const blobRes = await http.get(`/runs/${runId}/reports/${reportId}`, {
+        responseType: "blob",
+    } as any);
+    const blob: Blob = blobRes?.data as any;
+    const headers: any = blobRes?.headers || {};
+    const contentType: string | undefined =
+        headers["content-type"] || headers["Content-Type"];
+
+    // 파일명 추출 (content-disposition)
+    let fileName: string | undefined;
+    const cd: string | undefined =
+        headers["content-disposition"] || headers["Content-Disposition"];
+    if (cd && typeof cd === "string") {
+        const m = cd.match(/filename\*?=(?:UTF-8''|")?([^";\n]+)/);
+        if (m && m[1]) {
+            try {
+                fileName = decodeURIComponent(m[1].replace(/^"+|"+$/g, ""));
+            } catch {
+                fileName = m[1].replace(/^"+|"+$/g, "");
+            }
+        }
+    }
+    return { kind: "blob", blob, fileName, contentType };
+}
