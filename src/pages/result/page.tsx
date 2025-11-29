@@ -92,10 +92,12 @@ export default function Result() {
       return;
     }
     try {
-      // 리포트 ID가 없으면 생성
+      // 리포트 ID 확보 (state > sessionStorage > 새로 생성 순서)
       let currentReportId = reportId;
+      const storageKey = `consure:reportId:${targetRunId}`;
+
+      // state에 없으면 sessionStorage 확인
       if (!currentReportId) {
-        const storageKey = `consure:reportId:${targetRunId}`;
         try {
           const savedReportId = window.sessionStorage.getItem(storageKey);
           if (savedReportId) {
@@ -112,18 +114,18 @@ export default function Result() {
         } catch (e) {
           // sessionStorage 접근 실패 시 무시
         }
+      }
 
-        // 여전히 리포트 ID가 없으면 새로 생성
-        if (!currentReportId) {
-          const res = await postRunReport(targetRunId);
-          currentReportId = String(res.reportId);
-          setReportId(currentReportId);
-          // sessionStorage에 저장
-          try {
-            window.sessionStorage.setItem(storageKey, currentReportId);
-          } catch (e) {
-            // sessionStorage 저장 실패 시 무시
-          }
+      // 여전히 리포트 ID가 없으면 새로 생성
+      if (!currentReportId) {
+        const res = await postRunReport(targetRunId);
+        currentReportId = String(res.reportId);
+        setReportId(currentReportId);
+        // sessionStorage에 저장
+        try {
+          window.sessionStorage.setItem(storageKey, currentReportId);
+        } catch (e) {
+          // sessionStorage 저장 실패 시 무시
         }
       }
 

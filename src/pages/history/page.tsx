@@ -115,6 +115,26 @@ export default function History() {
       return reportIds[runId];
     }
 
+    // sessionStorage에서 이전에 생성한 리포트 ID 확인
+    const storageKey = `consure:reportId:${runId}`;
+    try {
+      const savedReportId = window.sessionStorage.getItem(storageKey);
+      if (savedReportId) {
+        // 저장된 리포트 ID가 유효한지 확인
+        try {
+          await fetchRunReport(runId, savedReportId);
+          // 유효하면 state에 저장하고 반환
+          setReportIds((prev) => ({ ...prev, [runId]: savedReportId }));
+          return savedReportId;
+        } catch {
+          // 유효하지 않으면 삭제하고 새로 생성
+          window.sessionStorage.removeItem(storageKey);
+        }
+      }
+    } catch (e) {
+      // sessionStorage 접근 실패 시 무시
+    }
+
     // 이미 생성 요청이 진행 중이면 대기
     if (lastReportRunIdsRef.current.has(runId)) {
       return null;
@@ -126,6 +146,12 @@ export default function History() {
       const res = await postRunReport(runId);
       const reportId = String(res.reportId);
       setReportIds((prev) => ({ ...prev, [runId]: reportId }));
+      // sessionStorage에 저장
+      try {
+        window.sessionStorage.setItem(storageKey, reportId);
+      } catch (e) {
+        // sessionStorage 저장 실패 시 무시
+      }
       return reportId;
     } catch (e) {
       console.error("Report generation error:", e);
