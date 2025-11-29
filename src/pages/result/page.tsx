@@ -3,8 +3,14 @@ import { useEffect, useState, useRef } from "react";
 import TopNavigation from "../_shared/components/TopNavigation";
 import Title from "./components/Title";
 import Footer from "./components/Footer";
+import SessionProgress from "../home/components/SessionProgress";
 import { formatKstDateTime } from "../../lib/date";
-import { getRunResults, postRunRevision, postRunReport, fetchRunReport } from "../../lib/api/client";
+import {
+  getRunResults,
+  postRunRevision,
+  postRunReport,
+  fetchRunReport,
+} from "../../lib/api/client";
 import ResultsCard from "./components/ResultsCard";
 import { extractResultSections } from "./utils";
 
@@ -25,6 +31,19 @@ export default function Result() {
   const [isReanalyzing, setIsReanalyzing] = useState<boolean>(false);
   const [reportId, setReportId] = useState<string | null>(null);
   const lastReportRunIdRef = useRef<string | null>(null);
+  const [reanalysisProgress, setReanalysisProgress] = useState(0);
+  const [reanalysisAvailableWorkers, setReanalysisAvailableWorkers] = useState<
+    string[]
+  >([]);
+  const [reanalysisWorkerStatuses, setReanalysisWorkerStatuses] = useState<
+    Record<string, "pending" | "running" | "done">
+  >({});
+  const [reanalysisRetryWorkers, setReanalysisRetryWorkers] = useState<
+    string[]
+  >([]);
+  const [reanalysisAttempt, setReanalysisAttempt] = useState<number | null>(
+    null
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -49,22 +68,35 @@ export default function Result() {
     };
   }, [baseRunId]);
 
-  // 결과를 불러온 뒤 해당 runId 기준으로 리포트를 1회 생성
+  // 결과를 불러온 뒤 해당 runId 기준으로 리포트를 확인 (이미 있으면 사용, 없으면 생성하지 않음)
   useEffect(() => {
     const currentRunId = String((raw as any)?.run?.id ?? baseRunId ?? "");
     if (!currentRunId) return;
     if (lastReportRunIdRef.current === currentRunId) return;
     lastReportRunIdRef.current = currentRunId;
     setReportId(null);
-    (async () => {
-      try {
-        const res = await postRunReport(currentRunId);
-        setReportId(String(res.reportId));
-      } catch (e) {
-        console.error(e);
-        // 실패했어도 버튼 클릭 시 수동 재시도 가능
+
+    // sessionStorage에서 이전에 생성한 리포트 ID 확인
+    const storageKey = `consure:reportId:${currentRunId}`;
+    try {
+      const savedReportId = window.sessionStorage.getItem(storageKey);
+      if (savedReportId) {
+        // 저장된 리포트 ID가 유효한지 확인
+        fetchRunReport(currentRunId, savedReportId)
+          .then(() => {
+            setReportId(savedReportId);
+          })
+          .catch(() => {
+            // 유효하지 않으면 삭제하고 새로 생성
+            window.sessionStorage.removeItem(storageKey);
+          });
+        return;
       }
-    })();
+    } catch (e) {
+      // sessionStorage 접근 실패 시 무시
+    }
+
+    // 리포트가 없으면 다운로드 버튼 클릭 시 생성하도록 함 (자동 생성하지 않음)
   }, [baseRunId, raw]);
 
   const downloadReport = async () => {
@@ -74,12 +106,45 @@ export default function Result() {
       return;
     }
     try {
-      if (!reportId) {
-        alert("리포트를 생성 중입니다. 잠시 후 다시 시도해주세요.");
-        return;
+      // 리포트 ID 확보 (state > sessionStorage > 새로 생성 순서)
+      let currentReportId = reportId;
+      const storageKey = `consure:reportId:${targetRunId}`;
+
+      // state에 없으면 sessionStorage 확인
+      if (!currentReportId) {
+        try {
+          const savedReportId = window.sessionStorage.getItem(storageKey);
+          if (savedReportId) {
+            // 저장된 리포트 ID가 유효한지 확인
+            try {
+              await fetchRunReport(targetRunId, savedReportId);
+              currentReportId = savedReportId;
+              setReportId(savedReportId);
+            } catch {
+              // 유효하지 않으면 삭제하고 새로 생성
+              window.sessionStorage.removeItem(storageKey);
+            }
+          }
+        } catch (e) {
+          // sessionStorage 접근 실패 시 무시
+        }
       }
+
+      // 여전히 리포트 ID가 없으면 새로 생성
+      if (!currentReportId) {
+        const res = await postRunReport(targetRunId);
+        currentReportId = String(res.reportId);
+        setReportId(currentReportId);
+        // sessionStorage에 저장
+        try {
+          window.sessionStorage.setItem(storageKey, currentReportId);
+        } catch (e) {
+          // sessionStorage 저장 실패 시 무시
+        }
+      }
+
       // 리포트 다운로드 정보 조회(GET)
-      const result = await fetchRunReport(targetRunId, reportId);
+      const result = await fetchRunReport(targetRunId, currentReportId);
 
       if (result.kind === "url") {
         // 서명 URL 등 직접 접근 가능한 경우 새 탭 열기
@@ -93,7 +158,9 @@ export default function Result() {
       a.href = blobUrl;
       a.download =
         result.fileName ||
-        `report_${baseRunId}${result.contentType?.includes("pdf") ? ".pdf" : ""}`;
+        `report_${baseRunId}${
+          result.contentType?.includes("pdf") ? ".pdf" : ""
+        }`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -130,30 +197,101 @@ export default function Result() {
   const onReanalyze = async () => {
     if (!baseRunId || isReanalyzing) return;
     setIsReanalyzing(true);
+    setReanalysisProgress(0);
+    setReanalysisAvailableWorkers([]);
+    setReanalysisWorkerStatuses({});
+    setReanalysisRetryWorkers([]);
+    setReanalysisAttempt(null);
+    setError(null);
+
     try {
       const { runId } = await postRunRevision(baseRunId);
-      // 간단 폴링: 완료될 때까지 N초 간격으로 재시도
+      try {
+        window.sessionStorage.setItem("consure:lastRunId", runId);
+      } catch {}
+
+      // 폴링: 완료될 때까지 진행 상태 업데이트
       let attempts = 0;
       const maxAttempts = 300; // ~5분 (1s 간격)
+      const pollIntervalMs = 1500;
+
       await new Promise<void>((resolve) => {
         const timer = window.setInterval(async () => {
           try {
             attempts += 1;
-            const next = await getRunResults(runId);
-            const status = (next as any)?.run?.status;
+            const next: any = await getRunResults(runId);
+
+            // 진행률 업데이트
+            const p = Number(next?.run?.progress);
+            if (Number.isFinite(p)) {
+              setReanalysisProgress((prev) => Math.max(prev, Math.min(99, p)));
+            }
+
+            // attempt 업데이트
+            const attemptNum = Number(next?.run?.attempt);
+            if (Number.isFinite(attemptNum)) {
+              setReanalysisAttempt(attemptNum);
+            }
+
+            // worker 상태 업데이트
+            const workers: any[] = Array.isArray(next?.availableWorkers)
+              ? next.availableWorkers
+              : [];
+            setReanalysisAvailableWorkers(workers.map(String));
+
+            const resultsObj: any = next?.results || {};
+            const nextStatuses: Record<string, "pending" | "running" | "done"> =
+              {};
+
+            // availableWorkers 기준으로 상태 설정
+            for (const w of workers) {
+              const key = String(w);
+              const s = resultsObj?.[key]?.status;
+              if (s === "done" || s === "running") {
+                nextStatuses[key] = s;
+              } else {
+                nextStatuses[key] = "pending";
+              }
+            }
+
+            // results에만 있는 키도 반영
+            for (const key of Object.keys(resultsObj || {})) {
+              const s = resultsObj?.[key]?.status;
+              if (s === "done" || s === "running") {
+                nextStatuses[key] = s;
+              } else if (!(key in nextStatuses)) {
+                nextStatuses[key] = "pending";
+              }
+            }
+
+            setReanalysisWorkerStatuses(nextStatuses);
+
+            // verifier의 retryWorkers 추출
+            const verifierResult = resultsObj?.verifier;
+            const retryWorkersList: string[] = Array.isArray(
+              verifierResult?.retryWorkers
+            )
+              ? verifierResult.retryWorkers.map(String)
+              : [];
+            setReanalysisRetryWorkers(retryWorkersList);
+
+            const status = next?.run?.status;
             if (status === "completed") {
               setRaw(next);
+              setReanalysisProgress(100);
               window.clearInterval(timer);
               resolve();
             } else if (attempts >= maxAttempts) {
               window.clearInterval(timer);
               resolve();
             }
-          } catch {
-            // 일시 오류 무시하고 다음 틱
+          } catch (err) {
+            // 일시 오류 무시하고 다음 틱에 재시도
           }
-        }, 1000);
+        }, pollIntervalMs);
       });
+    } catch (e: any) {
+      setError(e?.message || "재분석 시작 중 오류가 발생했습니다.");
     } finally {
       setIsReanalyzing(false);
     }
@@ -164,43 +302,62 @@ export default function Result() {
       <TopNavigation />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Title
-          title={pageTitle}
-          uploadDate={uploadedAt}
-          onDownload={downloadReport}
-        />
-
-        {isLoading && (
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
-            <p className="text-gray-600">결과를 불러오는 중입니다...</p>
+        {/* 재분석 중일 때 SessionProgress 표시 */}
+        {isReanalyzing ? (
+          <div className="min-h-screen flex items-center justify-center py-12">
+            <SessionProgress
+              progress={reanalysisProgress}
+              availableWorkers={reanalysisAvailableWorkers}
+              workerStatuses={reanalysisWorkerStatuses}
+              retryWorkers={reanalysisRetryWorkers}
+              attempt={reanalysisAttempt}
+              title="재분석 중이에요!"
+              description="문서를 다시 분석하고 있어요. 조금만 기다려주세요!"
+            />
           </div>
-        )}
-        {error && (
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
-            <p className="text-red-600">{error}</p>
-          </div>
-        )}
-        {!isLoading && !error && (
-          <ResultsCard
-            hasSummary={hasSummary}
-            hasRisk={hasRisk}
-            hasRevision={hasRevision}
-            hasQA={hasQA}
-            summaryText={summaryText}
-            summaryAnchors={Array.isArray(summaryAnchors) ? summaryAnchors : []}
-            riskItems={riskItems}
-            revisions={revisions}
-            qaQuestion={qaQuestion}
-            qaAnswer={qaAnswer}
-            qaFocus={qaFocus}
-            qaAnchors={Array.isArray(qaAnchors) ? qaAnchors : []}
-          />
-        )}
+        ) : (
+          <>
+            <Title
+              title={pageTitle}
+              uploadDate={uploadedAt}
+              onDownload={downloadReport}
+            />
 
-        <Footer
-          onReanalyze={baseRunId ? onReanalyze : undefined}
-          isReanalyzing={isReanalyzing}
-        />
+            {isLoading && (
+              <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
+                <p className="text-gray-600">결과를 불러오는 중입니다...</p>
+              </div>
+            )}
+            {error && (
+              <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
+                <p className="text-red-600">{error}</p>
+              </div>
+            )}
+            {!isLoading && !error && (
+              <ResultsCard
+                hasSummary={hasSummary}
+                hasRisk={hasRisk}
+                hasRevision={hasRevision}
+                hasQA={hasQA}
+                summaryText={summaryText}
+                summaryAnchors={
+                  Array.isArray(summaryAnchors) ? summaryAnchors : []
+                }
+                riskItems={riskItems}
+                revisions={revisions}
+                qaQuestion={qaQuestion}
+                qaAnswer={qaAnswer}
+                qaFocus={qaFocus}
+                qaAnchors={Array.isArray(qaAnchors) ? qaAnchors : []}
+              />
+            )}
+
+            <Footer
+              onReanalyze={baseRunId ? onReanalyze : undefined}
+              isReanalyzing={isReanalyzing}
+            />
+          </>
+        )}
       </main>
     </div>
   );

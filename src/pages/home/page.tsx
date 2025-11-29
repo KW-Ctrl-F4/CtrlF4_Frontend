@@ -552,6 +552,7 @@ export default function Home() {
                     progress={analysisProgress}
                     availableWorkers={analysis.availableWorkers}
                     workerStatuses={analysis.workerStatuses}
+                    retryWorkers={analysis.retryWorkers}
                     attempt={analysis.runAttempt}
                   />
                 </section>

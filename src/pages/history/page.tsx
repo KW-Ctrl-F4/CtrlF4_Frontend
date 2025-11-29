@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import HistoryItem from "./components/HistoryItem";
 import NoItem from "./components/NoItem";
 import Title from "./components/Title";
 import { useAuth } from "../../contexts/AuthContext";
 import { dataAPI, type HistoryItem as ApiHistoryItem } from "../../hooks/data";
 import TopNavigation from "../_shared/components/TopNavigation";
+import { postRunReport, fetchRunReport } from "../../lib/api/client";
 
 interface HistoryItem {
   s3_key: string;
@@ -20,6 +21,8 @@ export default function History() {
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reportIds, setReportIds] = useState<Record<string, string>>({});
+  const lastReportRunIdsRef = useRef<Set<string>>(new Set());
 
   // API에서 히스토리 데이터 가져오기
   useEffect(() => {
@@ -105,9 +108,103 @@ export default function History() {
     }
   };
 
-  const downloadReport = (item: HistoryItem) => {
-    // 실제로는 파일 다운로드 로직
-    alert(`${item.title} 리포트를 다운로드합니다.`);
+  // 히스토리 아이템별 리포트 생성 (다운로드 시 필요하면 생성)
+  const ensureReportId = async (runId: string): Promise<string | null> => {
+    // 이미 생성된 리포트 ID가 있으면 반환
+    if (reportIds[runId]) {
+      return reportIds[runId];
+    }
+
+    // sessionStorage에서 이전에 생성한 리포트 ID 확인
+    const storageKey = `consure:reportId:${runId}`;
+    try {
+      const savedReportId = window.sessionStorage.getItem(storageKey);
+      if (savedReportId) {
+        // 저장된 리포트 ID가 유효한지 확인
+        try {
+          await fetchRunReport(runId, savedReportId);
+          // 유효하면 state에 저장하고 반환
+          setReportIds((prev) => ({ ...prev, [runId]: savedReportId }));
+          return savedReportId;
+        } catch {
+          // 유효하지 않으면 삭제하고 새로 생성
+          window.sessionStorage.removeItem(storageKey);
+        }
+      }
+    } catch (e) {
+      // sessionStorage 접근 실패 시 무시
+    }
+
+    // 이미 생성 요청이 진행 중이면 대기
+    if (lastReportRunIdsRef.current.has(runId)) {
+      return null;
+    }
+
+    // 리포트 생성 요청
+    lastReportRunIdsRef.current.add(runId);
+    try {
+      const res = await postRunReport(runId);
+      const reportId = String(res.reportId);
+      setReportIds((prev) => ({ ...prev, [runId]: reportId }));
+      // sessionStorage에 저장
+      try {
+        window.sessionStorage.setItem(storageKey, reportId);
+      } catch (e) {
+        // sessionStorage 저장 실패 시 무시
+      }
+      return reportId;
+    } catch (e) {
+      console.error("Report generation error:", e);
+      lastReportRunIdsRef.current.delete(runId);
+      return null;
+    }
+  };
+
+  const downloadReport = async (item: HistoryItem) => {
+    const targetRunId = item.runId;
+    if (!targetRunId) {
+      alert("유효한 실행 ID(runId)를 찾을 수 없습니다.");
+      return;
+    }
+
+    try {
+      // 리포트 ID 확보 (없으면 생성)
+      let reportId = reportIds[targetRunId];
+      if (!reportId) {
+        const newReportId = await ensureReportId(targetRunId);
+        if (!newReportId) {
+          alert("리포트를 생성 중입니다. 잠시 후 다시 시도해주세요.");
+          return;
+        }
+        reportId = newReportId;
+      }
+
+      // 리포트 다운로드 정보 조회(GET)
+      const result = await fetchRunReport(targetRunId, reportId);
+
+      if (result.kind === "url") {
+        // 서명 URL 등 직접 접근 가능한 경우 새 탭 열기
+        window.open(result.url, "_blank", "noopener,noreferrer");
+        return;
+      }
+
+      // blob 응답인 경우 클라이언트에서 저장
+      const blobUrl = URL.createObjectURL(result.blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download =
+        result.fileName ||
+        `report_${targetRunId}${
+          result.contentType?.includes("pdf") ? ".pdf" : ""
+        }`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
+    } catch (e: any) {
+      console.error(e);
+      alert(e?.message || "리포트 다운로드에 실패했습니다.");
+    }
   };
 
   return (

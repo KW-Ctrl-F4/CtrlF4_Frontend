@@ -2,6 +2,7 @@ interface SessionProgressProps {
   progress: number;
   availableWorkers?: string[];
   workerStatuses?: Record<string, "pending" | "running" | "done">;
+  retryWorkers?: string[];
   attempt?: number | null;
   title?: string;
   description?: string;
@@ -11,6 +12,7 @@ export default function SessionProgress({
   progress,
   availableWorkers,
   workerStatuses,
+  retryWorkers = [],
   attempt,
   title = "분석 중이에요!",
   description = "AI가 열심히 분석하고 있어요. 조금만 기다려주세요!",
@@ -27,9 +29,8 @@ export default function SessionProgress({
     if (w === "revision") return "수정본 생성";
     return w;
   };
-  // 기본값에 모든 가능한 worker 포함 (시작부터 4개 모두 표시)
-  // revision은 qa에서 "수정" 요청이 있을 때만 나타나므로 기본값에는 포함하지 않음
-  const defaultWorkers = ["qa", "summarizer", "verifier", "risk"];
+  // 리스크, 요약, 검증은 무조건 표시 (기본값)
+  const defaultWorkers = ["summarizer", "verifier", "risk"];
 
   // availableWorkers가 있으면 사용하고, 없으면 workerStatuses의 키를 사용
   const discoveredWorkers =
@@ -37,17 +38,21 @@ export default function SessionProgress({
       ? (availableWorkers as string[])
       : Object.keys(workerStatuses || {});
 
-  // discoveredWorkers가 비어있으면 기본값 사용
-  // discoveredWorkers가 있더라도 기본값과 병합하여 항상 4개 모두 표시
+  // 기본값과 실제 응답을 병합 (중복 제거)
   const workers =
     discoveredWorkers.length > 0
       ? [...new Set([...defaultWorkers, ...discoveredWorkers])] // 중복 제거하며 병합
       : defaultWorkers;
-  const steps = workers.map((w: string) => ({
-    id: w,
-    label: toLabel(w),
-    status: (workerStatuses || {})[w] || "pending",
-  }));
+  const steps = workers.map((w: string) => {
+    const isRetry = Array.isArray(retryWorkers) && retryWorkers.includes(w);
+    const baseLabel = toLabel(w);
+    return {
+      id: w,
+      label: isRetry ? `${baseLabel} (한 번 더 꼼꼼히 보는중)` : baseLabel,
+      status: (workerStatuses || {})[w] || "pending",
+      isRetry,
+    };
+  });
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 max-w-2xl w-full">
       <div className="text-center mb-8">

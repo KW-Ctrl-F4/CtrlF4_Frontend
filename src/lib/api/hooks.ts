@@ -44,6 +44,7 @@ export function useDocumentAnalysis({
 	const [progress, setProgress] = useState(0);
 		const [availableWorkers, setAvailableWorkers] = useState<string[]>([]);
 		const [workerStatuses, setWorkerStatuses] = useState<Record<string, "pending" | "running" | "done">>({});
+		const [retryWorkers, setRetryWorkers] = useState<string[]>([]);
 		const [runStatus, setRunStatus] = useState<string | null>(null);
 		const [runAttempt, setRunAttempt] = useState<number | null>(null);
 
@@ -225,6 +226,14 @@ export function useDocumentAnalysis({
 								}
 							}
 							setWorkerStatuses(nextStatuses);
+							
+							// verifier의 retryWorkers 추출
+							const verifierResult = resultsObj?.verifier;
+							const retryWorkersList: string[] = Array.isArray(verifierResult?.retryWorkers)
+								? verifierResult.retryWorkers.map(String)
+								: [];
+							setRetryWorkers(retryWorkersList);
+							
 							const isDone = status === "completed";
 
 							if (isDone) {
@@ -280,10 +289,11 @@ export function useDocumentAnalysis({
 			results,
 			availableWorkers,
 			workerStatuses,
+			retryWorkers,
 			runStatus,
 			runAttempt,
 		}),
-        [docId, sessionId, runId, suggestedIntents, suggestedRoles, suggestedQuestions, selectedIntents, isLoading, error, results, availableWorkers, workerStatuses, runStatus, runAttempt]
+        [docId, sessionId, runId, suggestedIntents, suggestedRoles, suggestedQuestions, selectedIntents, isLoading, error, results, availableWorkers, workerStatuses, retryWorkers, runStatus, runAttempt]
 	);
 
 	return {
