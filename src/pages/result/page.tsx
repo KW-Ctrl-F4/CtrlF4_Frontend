@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import TopNavigation from "../_shared/components/TopNavigation";
 import Title from "./components/Title";
 import Footer from "./components/Footer";
+import SessionProgress from "../home/components/SessionProgress";
 import { formatKstDateTime } from "../../lib/date";
 import {
   getRunResults,
@@ -30,6 +31,16 @@ export default function Result() {
   const [isReanalyzing, setIsReanalyzing] = useState<boolean>(false);
   const [reportId, setReportId] = useState<string | null>(null);
   const lastReportRunIdRef = useRef<string | null>(null);
+  const [reanalysisProgress, setReanalysisProgress] = useState(0);
+  const [reanalysisAvailableWorkers, setReanalysisAvailableWorkers] = useState<
+    string[]
+  >([]);
+  const [reanalysisWorkerStatuses, setReanalysisWorkerStatuses] = useState<
+    Record<string, "pending" | "running" | "done">
+  >({});
+  const [reanalysisAttempt, setReanalysisAttempt] = useState<number | null>(
+    null
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -183,30 +194,91 @@ export default function Result() {
   const onReanalyze = async () => {
     if (!baseRunId || isReanalyzing) return;
     setIsReanalyzing(true);
+    setReanalysisProgress(0);
+    setReanalysisAvailableWorkers([]);
+    setReanalysisWorkerStatuses({});
+    setReanalysisAttempt(null);
+    setError(null);
+
     try {
       const { runId } = await postRunRevision(baseRunId);
-      // 간단 폴링: 완료될 때까지 N초 간격으로 재시도
+      try {
+        window.sessionStorage.setItem("consure:lastRunId", runId);
+      } catch {}
+
+      // 폴링: 완료될 때까지 진행 상태 업데이트
       let attempts = 0;
       const maxAttempts = 300; // ~5분 (1s 간격)
+      const pollIntervalMs = 1500;
+
       await new Promise<void>((resolve) => {
         const timer = window.setInterval(async () => {
           try {
             attempts += 1;
-            const next = await getRunResults(runId);
-            const status = (next as any)?.run?.status;
+            const next: any = await getRunResults(runId);
+
+            // 진행률 업데이트
+            const p = Number(next?.run?.progress);
+            if (Number.isFinite(p)) {
+              setReanalysisProgress((prev) => Math.max(prev, Math.min(99, p)));
+            }
+
+            // attempt 업데이트
+            const attemptNum = Number(next?.run?.attempt);
+            if (Number.isFinite(attemptNum)) {
+              setReanalysisAttempt(attemptNum);
+            }
+
+            // worker 상태 업데이트
+            const workers: any[] = Array.isArray(next?.availableWorkers)
+              ? next.availableWorkers
+              : [];
+            setReanalysisAvailableWorkers(workers.map(String));
+
+            const resultsObj: any = next?.results || {};
+            const nextStatuses: Record<string, "pending" | "running" | "done"> =
+              {};
+
+            // availableWorkers 기준으로 상태 설정
+            for (const w of workers) {
+              const key = String(w);
+              const s = resultsObj?.[key]?.status;
+              if (s === "done" || s === "running") {
+                nextStatuses[key] = s;
+              } else {
+                nextStatuses[key] = "pending";
+              }
+            }
+
+            // results에만 있는 키도 반영
+            for (const key of Object.keys(resultsObj || {})) {
+              const s = resultsObj?.[key]?.status;
+              if (s === "done" || s === "running") {
+                nextStatuses[key] = s;
+              } else if (!(key in nextStatuses)) {
+                nextStatuses[key] = "pending";
+              }
+            }
+
+            setReanalysisWorkerStatuses(nextStatuses);
+
+            const status = next?.run?.status;
             if (status === "completed") {
               setRaw(next);
+              setReanalysisProgress(100);
               window.clearInterval(timer);
               resolve();
             } else if (attempts >= maxAttempts) {
               window.clearInterval(timer);
               resolve();
             }
-          } catch {
-            // 일시 오류 무시하고 다음 틱
+          } catch (err) {
+            // 일시 오류 무시하고 다음 틱에 재시도
           }
-        }, 1000);
+        }, pollIntervalMs);
       });
+    } catch (e: any) {
+      setError(e?.message || "재분석 시작 중 오류가 발생했습니다.");
     } finally {
       setIsReanalyzing(false);
     }
@@ -217,43 +289,61 @@ export default function Result() {
       <TopNavigation />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Title
-          title={pageTitle}
-          uploadDate={uploadedAt}
-          onDownload={downloadReport}
-        />
-
-        {isLoading && (
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
-            <p className="text-gray-600">결과를 불러오는 중입니다...</p>
+        {/* 재분석 중일 때 SessionProgress 표시 */}
+        {isReanalyzing ? (
+          <div className="min-h-screen flex items-center justify-center py-12">
+            <SessionProgress
+              progress={reanalysisProgress}
+              availableWorkers={reanalysisAvailableWorkers}
+              workerStatuses={reanalysisWorkerStatuses}
+              attempt={reanalysisAttempt}
+              title="재분석 중이에요!"
+              description="문서를 다시 분석하고 있어요. 조금만 기다려주세요!"
+            />
           </div>
-        )}
-        {error && (
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
-            <p className="text-red-600">{error}</p>
-          </div>
-        )}
-        {!isLoading && !error && (
-          <ResultsCard
-            hasSummary={hasSummary}
-            hasRisk={hasRisk}
-            hasRevision={hasRevision}
-            hasQA={hasQA}
-            summaryText={summaryText}
-            summaryAnchors={Array.isArray(summaryAnchors) ? summaryAnchors : []}
-            riskItems={riskItems}
-            revisions={revisions}
-            qaQuestion={qaQuestion}
-            qaAnswer={qaAnswer}
-            qaFocus={qaFocus}
-            qaAnchors={Array.isArray(qaAnchors) ? qaAnchors : []}
-          />
-        )}
+        ) : (
+          <>
+            <Title
+              title={pageTitle}
+              uploadDate={uploadedAt}
+              onDownload={downloadReport}
+            />
 
-        <Footer
-          onReanalyze={baseRunId ? onReanalyze : undefined}
-          isReanalyzing={isReanalyzing}
-        />
+            {isLoading && (
+              <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
+                <p className="text-gray-600">결과를 불러오는 중입니다...</p>
+              </div>
+            )}
+            {error && (
+              <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
+                <p className="text-red-600">{error}</p>
+              </div>
+            )}
+            {!isLoading && !error && (
+              <ResultsCard
+                hasSummary={hasSummary}
+                hasRisk={hasRisk}
+                hasRevision={hasRevision}
+                hasQA={hasQA}
+                summaryText={summaryText}
+                summaryAnchors={
+                  Array.isArray(summaryAnchors) ? summaryAnchors : []
+                }
+                riskItems={riskItems}
+                revisions={revisions}
+                qaQuestion={qaQuestion}
+                qaAnswer={qaAnswer}
+                qaFocus={qaFocus}
+                qaAnchors={Array.isArray(qaAnchors) ? qaAnchors : []}
+              />
+            )}
+
+            <Footer
+              onReanalyze={baseRunId ? onReanalyze : undefined}
+              isReanalyzing={isReanalyzing}
+            />
+          </>
+        )}
       </main>
     </div>
   );
