@@ -27,9 +27,8 @@ export default function SessionProgress({
     if (w === "revision") return "수정본 생성";
     return w;
   };
-  // 기본값에 모든 가능한 worker 포함 (시작부터 4개 모두 표시)
-  // revision은 qa에서 "수정" 요청이 있을 때만 나타나므로 기본값에는 포함하지 않음
-  const defaultWorkers = ["qa", "summarizer", "verifier", "risk"];
+  // 리스크, 요약, 검증은 무조건 표시 (기본값)
+  const defaultWorkers = ["summarizer", "verifier", "risk"];
 
   // availableWorkers가 있으면 사용하고, 없으면 workerStatuses의 키를 사용
   const discoveredWorkers =
@@ -37,8 +36,7 @@ export default function SessionProgress({
       ? (availableWorkers as string[])
       : Object.keys(workerStatuses || {});
 
-  // discoveredWorkers가 비어있으면 기본값 사용
-  // discoveredWorkers가 있더라도 기본값과 병합하여 항상 4개 모두 표시
+  // 기본값과 실제 응답을 병합 (중복 제거)
   const workers =
     discoveredWorkers.length > 0
       ? [...new Set([...defaultWorkers, ...discoveredWorkers])] // 중복 제거하며 병합
