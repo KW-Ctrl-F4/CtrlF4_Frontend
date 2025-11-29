@@ -4,7 +4,12 @@ import TopNavigation from "../_shared/components/TopNavigation";
 import Title from "./components/Title";
 import Footer from "./components/Footer";
 import { formatKstDateTime } from "../../lib/date";
-import { getRunResults, postRunRevision, postRunReport, fetchRunReport } from "../../lib/api/client";
+import {
+  getRunResults,
+  postRunRevision,
+  postRunReport,
+  fetchRunReport,
+} from "../../lib/api/client";
 import ResultsCard from "./components/ResultsCard";
 import { extractResultSections } from "./utils";
 
@@ -49,22 +54,35 @@ export default function Result() {
     };
   }, [baseRunId]);
 
-  // 결과를 불러온 뒤 해당 runId 기준으로 리포트를 1회 생성
+  // 결과를 불러온 뒤 해당 runId 기준으로 리포트를 확인 (이미 있으면 사용, 없으면 생성하지 않음)
   useEffect(() => {
     const currentRunId = String((raw as any)?.run?.id ?? baseRunId ?? "");
     if (!currentRunId) return;
     if (lastReportRunIdRef.current === currentRunId) return;
     lastReportRunIdRef.current = currentRunId;
     setReportId(null);
-    (async () => {
-      try {
-        const res = await postRunReport(currentRunId);
-        setReportId(String(res.reportId));
-      } catch (e) {
-        console.error(e);
-        // 실패했어도 버튼 클릭 시 수동 재시도 가능
+
+    // sessionStorage에서 이전에 생성한 리포트 ID 확인
+    const storageKey = `consure:reportId:${currentRunId}`;
+    try {
+      const savedReportId = window.sessionStorage.getItem(storageKey);
+      if (savedReportId) {
+        // 저장된 리포트 ID가 유효한지 확인
+        fetchRunReport(currentRunId, savedReportId)
+          .then(() => {
+            setReportId(savedReportId);
+          })
+          .catch(() => {
+            // 유효하지 않으면 삭제하고 새로 생성
+            window.sessionStorage.removeItem(storageKey);
+          });
+        return;
       }
-    })();
+    } catch (e) {
+      // sessionStorage 접근 실패 시 무시
+    }
+
+    // 리포트가 없으면 다운로드 버튼 클릭 시 생성하도록 함 (자동 생성하지 않음)
   }, [baseRunId, raw]);
 
   const downloadReport = async () => {
@@ -74,12 +92,43 @@ export default function Result() {
       return;
     }
     try {
-      if (!reportId) {
-        alert("리포트를 생성 중입니다. 잠시 후 다시 시도해주세요.");
-        return;
+      // 리포트 ID가 없으면 생성
+      let currentReportId = reportId;
+      if (!currentReportId) {
+        const storageKey = `consure:reportId:${targetRunId}`;
+        try {
+          const savedReportId = window.sessionStorage.getItem(storageKey);
+          if (savedReportId) {
+            // 저장된 리포트 ID가 유효한지 확인
+            try {
+              await fetchRunReport(targetRunId, savedReportId);
+              currentReportId = savedReportId;
+              setReportId(savedReportId);
+            } catch {
+              // 유효하지 않으면 삭제하고 새로 생성
+              window.sessionStorage.removeItem(storageKey);
+            }
+          }
+        } catch (e) {
+          // sessionStorage 접근 실패 시 무시
+        }
+
+        // 여전히 리포트 ID가 없으면 새로 생성
+        if (!currentReportId) {
+          const res = await postRunReport(targetRunId);
+          currentReportId = String(res.reportId);
+          setReportId(currentReportId);
+          // sessionStorage에 저장
+          try {
+            window.sessionStorage.setItem(storageKey, currentReportId);
+          } catch (e) {
+            // sessionStorage 저장 실패 시 무시
+          }
+        }
       }
+
       // 리포트 다운로드 정보 조회(GET)
-      const result = await fetchRunReport(targetRunId, reportId);
+      const result = await fetchRunReport(targetRunId, currentReportId);
 
       if (result.kind === "url") {
         // 서명 URL 등 직접 접근 가능한 경우 새 탭 열기
@@ -93,7 +142,9 @@ export default function Result() {
       a.href = blobUrl;
       a.download =
         result.fileName ||
-        `report_${baseRunId}${result.contentType?.includes("pdf") ? ".pdf" : ""}`;
+        `report_${baseRunId}${
+          result.contentType?.includes("pdf") ? ".pdf" : ""
+        }`;
       document.body.appendChild(a);
       a.click();
       a.remove();
