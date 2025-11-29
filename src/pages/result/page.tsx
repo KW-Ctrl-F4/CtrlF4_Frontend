@@ -38,6 +38,9 @@ export default function Result() {
   const [reanalysisWorkerStatuses, setReanalysisWorkerStatuses] = useState<
     Record<string, "pending" | "running" | "done">
   >({});
+  const [reanalysisRetryWorkers, setReanalysisRetryWorkers] = useState<
+    string[]
+  >([]);
   const [reanalysisAttempt, setReanalysisAttempt] = useState<number | null>(
     null
   );
@@ -197,6 +200,7 @@ export default function Result() {
     setReanalysisProgress(0);
     setReanalysisAvailableWorkers([]);
     setReanalysisWorkerStatuses({});
+    setReanalysisRetryWorkers([]);
     setReanalysisAttempt(null);
     setError(null);
 
@@ -262,6 +266,15 @@ export default function Result() {
 
             setReanalysisWorkerStatuses(nextStatuses);
 
+            // verifier의 retryWorkers 추출
+            const verifierResult = resultsObj?.verifier;
+            const retryWorkersList: string[] = Array.isArray(
+              verifierResult?.retryWorkers
+            )
+              ? verifierResult.retryWorkers.map(String)
+              : [];
+            setReanalysisRetryWorkers(retryWorkersList);
+
             const status = next?.run?.status;
             if (status === "completed") {
               setRaw(next);
@@ -296,6 +309,7 @@ export default function Result() {
               progress={reanalysisProgress}
               availableWorkers={reanalysisAvailableWorkers}
               workerStatuses={reanalysisWorkerStatuses}
+              retryWorkers={reanalysisRetryWorkers}
               attempt={reanalysisAttempt}
               title="재분석 중이에요!"
               description="문서를 다시 분석하고 있어요. 조금만 기다려주세요!"
