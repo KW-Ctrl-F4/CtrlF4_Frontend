@@ -554,6 +554,18 @@ export default function Home() {
                     workerStatuses={analysis.workerStatuses}
                     retryWorkers={analysis.retryWorkers}
                     attempt={analysis.runAttempt}
+                    title={
+                      !analysis.availableWorkers ||
+                      analysis.availableWorkers.length === 0
+                        ? "분석 준비 중"
+                        : undefined
+                    }
+                    description={
+                      !analysis.availableWorkers ||
+                      analysis.availableWorkers.length === 0
+                        ? "분석을 준비하고 있어요. 잠시만 기다려주세요!"
+                        : undefined
+                    }
                   />
                 </section>
               )}
