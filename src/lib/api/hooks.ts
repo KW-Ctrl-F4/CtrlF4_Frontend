@@ -249,9 +249,9 @@ export function useDocumentAnalysis({
 								return;
 							}
 
-							// 타임아웃 가드 (최대 3분 or 300회 시도)
+							// 타임아웃 가드 (최대 16분)
 							const elapsed = (Date.now() - (pollStartTimeRef.current || Date.now()));
-							if (elapsed > 600_000) {
+							if (elapsed > 960_000) {
 								setError("결과 폴링이 지연되고 있습니다. 잠시 후 다시 시도해주세요.");
 								if (pollTimerRef.current) {
 									window.clearInterval(pollTimerRef.current);
@@ -433,7 +433,7 @@ export function useReanalysis(pollIntervalMs: number = 5000) {
 						}
 
 						const elapsed = (Date.now() - (pollStartTimeRef.current || Date.now()));
-						if (elapsed > 600_000) {
+						if (elapsed > 960_000) {
 							setError("재분석 결과 폴링이 지연되고 있습니다. 잠시 후 다시 시도해주세요.");
 							if (pollTimerRef.current) {
 								window.clearInterval(pollTimerRef.current);

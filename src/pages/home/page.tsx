@@ -554,6 +554,18 @@ export default function Home() {
                     workerStatuses={analysis.workerStatuses}
                     retryWorkers={analysis.retryWorkers}
                     attempt={analysis.runAttempt}
+                    title={
+                      !analysis.availableWorkers ||
+                      analysis.availableWorkers.length === 0
+                        ? "분석 준비 중"
+                        : undefined
+                    }
+                    description={
+                      !analysis.availableWorkers ||
+                      analysis.availableWorkers.length === 0
+                        ? "분석을 준비하고 있어요. 잠시만 기다려주세요!"
+                        : undefined
+                    }
                   />
                 </section>
               )}
@@ -570,7 +582,7 @@ export default function Home() {
                         <i className="ri-checkbox-circle-line text-3xl text-green-600"></i>
                       </div>
                       <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                        분석 완료! 🎉
+                        분석 완료!
                       </h2>
                       <p className="text-lg text-gray-600 mb-8">
                         계약서 분석이 끝났어요! 결과를 확인해볼까요?
