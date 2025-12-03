@@ -25,7 +25,7 @@ function severityBadgeClasses(severity?: Severity) {
 }
 
 export default function RiskCard({
-  title = "Risk",
+  title = "독소 조항",
   items = [],
   embedded = false,
 }: RiskCardProps) {

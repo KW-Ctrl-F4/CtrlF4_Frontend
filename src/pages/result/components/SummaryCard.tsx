@@ -20,7 +20,7 @@ function splitIntoSentences(text?: string): string[] {
 }
 
 export default function SummaryCard({
-  title = "Summary",
+  title = "요약",
   summary,
   anchors,
   embedded = false,

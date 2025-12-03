@@ -12,7 +12,7 @@ interface RevisionCardProps {
 }
 
 export default function RevisionCard({
-  title = "Revision",
+  title = "수정 제안",
   revisions = [],
   embedded = false,
 }: RevisionCardProps) {

@@ -46,25 +46,25 @@ export default function ReportDocument({
 
       {hasSummary && summaryText && (
         <div className="mb-6">
-          <SummaryCard embedded title="Summary" summary={summaryText} anchors={summaryAnchors} />
+          <SummaryCard embedded title="요약" summary={summaryText} anchors={summaryAnchors} />
         </div>
       )}
 
       {hasRisk && riskItems.length > 0 && (
         <div className="mb-6">
-          <RiskCard embedded title="Risk" items={riskItems} />
+          <RiskCard embedded title="독소 조항" items={riskItems} />
         </div>
       )}
 
       {hasRevision && revisions.length > 0 && (
         <div className="mb-6">
-          <RevisionCard embedded title="Revision" revisions={revisions} />
+          <RevisionCard embedded title="수정 제안" revisions={revisions} />
         </div>
       )}
 
       {hasQA && (qaQuestion || qaAnswer) && (
         <div className="mb-6">
-          <QACard embedded title="Q&A" question={qaQuestion} answer={qaAnswer} focus={qaFocus} anchors={qaAnchors} />
+          <QACard embedded title="질의 응답" question={qaQuestion} answer={qaAnswer} focus={qaFocus} anchors={qaAnchors} />
         </div>
       )}
     </div>

@@ -51,7 +51,7 @@ function useHighlightedAnswer(answer?: string, focus?: string[]) {
 }
 
 export default function QACard({
-  title = "Q&A",
+  title = "질의 응답",
   question,
   answer,
   focus,

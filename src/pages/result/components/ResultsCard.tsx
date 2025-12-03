@@ -36,20 +36,21 @@ export default function ResultsCard({
   qaFocus = [],
   qaAnchors = [],
 }: ResultsCardProps) {
-  // 사용 가능한 탭 목록 생성 (Q&A > Risk > Revision > Summary 순서)
+  // 사용 가능한 탭 목록 생성 (질의 응답 > 독소 조항 > 수정 제안 > 요약 순서)
   const availableTabs: { type: TabType; label: string; hasContent: boolean }[] =
     [];
-  if (hasQA) availableTabs.push({ type: "qa", label: "Q&A", hasContent: true });
+  if (hasQA)
+    availableTabs.push({ type: "qa", label: "질의 응답", hasContent: true });
   if (hasRisk)
-    availableTabs.push({ type: "risk", label: "Risk", hasContent: true });
+    availableTabs.push({ type: "risk", label: "독소 조항", hasContent: true });
   if (hasRevision)
     availableTabs.push({
       type: "revision",
-      label: "Revision",
+      label: "수정 제안",
       hasContent: true,
     });
   if (hasSummary)
-    availableTabs.push({ type: "summary", label: "Summary", hasContent: true });
+    availableTabs.push({ type: "summary", label: "요약", hasContent: true });
 
   // 기본 활성 탭: 첫 번째 사용 가능한 탭
   const defaultTab = availableTabs.length > 0 ? availableTabs[0].type : "qa";
@@ -62,14 +63,14 @@ export default function ResultsCard({
         if (!hasQA || (!qaQuestion && !qaAnswer)) {
           return (
             <div className="text-center py-12 text-gray-500">
-              <p>Q&A 결과가 없습니다.</p>
+              <p>질의 응답 결과가 없습니다.</p>
             </div>
           );
         }
         return (
           <QACard
             embedded
-            title="Q&A"
+            title="질의 응답"
             question={qaQuestion}
             answer={qaAnswer}
             focus={qaFocus}
@@ -80,11 +81,11 @@ export default function ResultsCard({
         if (!hasRisk || !riskItems || riskItems.length === 0) {
           return (
             <div className="text-center py-12 text-gray-500">
-              <p>위험 요소 분석 결과가 없습니다.</p>
+              <p>독소 조항 결과가 없습니다.</p>
             </div>
           );
         }
-        return <RiskCard embedded title="Risk" items={riskItems} />;
+        return <RiskCard embedded title="독소 조항" items={riskItems} />;
       case "revision":
         if (!hasRevision || !revisions || revisions.length === 0) {
           return (
@@ -93,7 +94,9 @@ export default function ResultsCard({
             </div>
           );
         }
-        return <RevisionCard embedded title="Revision" revisions={revisions} />;
+        return (
+          <RevisionCard embedded title="수정 제안" revisions={revisions} />
+        );
       case "summary":
         if (!hasSummary || !summaryText) {
           return (
@@ -105,7 +108,7 @@ export default function ResultsCard({
         return (
           <SummaryCard
             embedded
-            title="Summary"
+            title="요약"
             summary={summaryText}
             anchors={summaryAnchors}
           />
