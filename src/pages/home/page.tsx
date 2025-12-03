@@ -8,6 +8,7 @@ import { PERSONA_QUESTIONS } from "../../mocks";
 import { useDocumentAnalysis } from "../../lib/api/hooks";
 import { useAuth } from "../../contexts/AuthContext";
 import TopNavigation from "../_shared/components/TopNavigation";
+import logo32 from "../../assets/logo-32x32.png";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -355,9 +356,11 @@ export default function Home() {
         <div className="max-w-2xl w-full text-center">
           {/* 로고 */}
           <div className="flex items-center justify-center space-x-3 mb-8">
-            <div className="w-12 h-12 bg-primary-600 rounded-lg flex items-center justify-center">
-              <i className="ri-search-line text-white text-2xl"></i>
-            </div>
+            <img
+              src={logo32}
+              alt="ConSure Logo"
+              className="w-12 h-12 object-contain flex-shrink-0"
+            />
             <span className="text-3xl font-bold text-gray-900">ConSure</span>
           </div>
 
