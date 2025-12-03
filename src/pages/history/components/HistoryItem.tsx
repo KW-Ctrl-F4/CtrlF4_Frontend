@@ -6,6 +6,7 @@ interface HistoryItemProps {
   uploadDate: string;
   description: string;
   fileCount: number;
+  runId: string;
   onDownload: () => void;
   onDelete: () => void;
 }
@@ -16,6 +17,7 @@ export default function HistoryItem({
   uploadDate,
   description,
   fileCount,
+  runId,
   onDownload,
   onDelete,
 }: HistoryItemProps) {
@@ -24,7 +26,7 @@ export default function HistoryItem({
   return (
     <div
       className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
-      onClick={() => navigate("/result")}
+      onClick={() => navigate("/result", { state: { runId } })}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">

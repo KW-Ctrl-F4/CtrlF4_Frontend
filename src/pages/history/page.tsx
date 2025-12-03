@@ -23,6 +23,7 @@ export default function History() {
   const [error, setError] = useState<string | null>(null);
   const [reportIds, setReportIds] = useState<Record<string, string>>({});
   const lastReportRunIdsRef = useRef<Set<string>>(new Set());
+  const downloadingRunIdsRef = useRef<Set<string>>(new Set());
 
   // API에서 히스토리 데이터 가져오기
   useEffect(() => {
@@ -167,6 +168,12 @@ export default function History() {
       return;
     }
 
+    // 중복 요청 방지
+    if (downloadingRunIdsRef.current.has(targetRunId)) {
+      return;
+    }
+
+    downloadingRunIdsRef.current.add(targetRunId);
     try {
       // 리포트 ID 확보 (없으면 생성)
       let reportId = reportIds[targetRunId];
@@ -204,6 +211,8 @@ export default function History() {
     } catch (e: any) {
       console.error(e);
       alert(e?.message || "리포트 다운로드에 실패했습니다.");
+    } finally {
+      downloadingRunIdsRef.current.delete(targetRunId);
     }
   };
 
@@ -256,6 +265,7 @@ export default function History() {
                     uploadDate={item.uploadDate}
                     description={item.description}
                     fileCount={item.fileCount}
+                    runId={item.runId}
                     onDownload={() => downloadReport(item)}
                     onDelete={() => deleteHistoryItem(item.runId)}
                   />

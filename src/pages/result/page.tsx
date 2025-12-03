@@ -31,6 +31,7 @@ export default function Result() {
   const [isReanalyzing, setIsReanalyzing] = useState<boolean>(false);
   const [reportId, setReportId] = useState<string | null>(null);
   const lastReportRunIdRef = useRef<string | null>(null);
+  const isDownloadingRef = useRef<boolean>(false);
   const [reanalysisProgress, setReanalysisProgress] = useState(0);
   const [reanalysisAvailableWorkers, setReanalysisAvailableWorkers] = useState<
     string[]
@@ -100,11 +101,18 @@ export default function Result() {
   }, [baseRunId, raw]);
 
   const downloadReport = async () => {
+    // 중복 요청 방지
+    if (isDownloadingRef.current) {
+      return;
+    }
+
     const targetRunId = String((raw as any)?.run?.id ?? baseRunId ?? "");
     if (!targetRunId) {
       alert("유효한 실행 ID(runId)를 찾을 수 없습니다.");
       return;
     }
+
+    isDownloadingRef.current = true;
     try {
       // 리포트 ID 확보 (state > sessionStorage > 새로 생성 순서)
       let currentReportId = reportId;
@@ -168,6 +176,8 @@ export default function Result() {
     } catch (e: any) {
       console.error(e);
       alert(e?.message || "리포트 다운로드에 실패했습니다.");
+    } finally {
+      isDownloadingRef.current = false;
     }
   };
 
