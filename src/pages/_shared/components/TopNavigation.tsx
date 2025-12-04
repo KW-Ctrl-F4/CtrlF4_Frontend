@@ -90,6 +90,16 @@ export default function TopNavigation() {
         <i className="ri-settings-line mr-1"></i>
         Settings
       </button>
+      <a
+        href="https://consure.notion.site/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="px-4 py-2 bg-white/90 backdrop-blur-sm text-gray-700 rounded-lg hover:bg-white hover:text-primary-600 transition-all duration-200 shadow-md text-sm font-medium"
+        title="도움말"
+      >
+        <i className="ri-question-line mr-1"></i>
+        Help
+      </a>
       <button
         onClick={logout}
         className="px-4 py-2 bg-white/90 backdrop-blur-sm text-gray-700 rounded-lg hover:bg-white hover:text-red-600 transition-all duration-200 shadow-md text-sm font-medium"
