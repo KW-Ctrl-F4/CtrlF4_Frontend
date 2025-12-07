@@ -42,8 +42,6 @@ export default function TopNavigation() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isHomePage, lastScrollY]);
 
-  if (!isAuthenticated) return null;
-
   const isActive = (path: string) => location.pathname === path;
 
   return (
@@ -66,30 +64,34 @@ export default function TopNavigation() {
         <i className="ri-home-line mr-1"></i>
         Home
       </button>
-      <button
-        onClick={() => navigate("/history")}
-        className={`px-4 py-2 rounded-lg transition-all duration-200 shadow-md text-sm font-medium ${
-          isActive("/history")
-            ? "bg-primary-600 text-white hover:bg-primary-700"
-            : "bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white hover:text-primary-600"
-        }`}
-        title="히스토리"
-      >
-        <i className="ri-history-line mr-1"></i>
-        History
-      </button>
-      <button
-        onClick={() => navigate("/settings")}
-        className={`px-4 py-2 rounded-lg transition-all duration-200 shadow-md text-sm font-medium ${
-          isActive("/settings")
-            ? "bg-primary-600 text-white hover:bg-primary-700"
-            : "bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white hover:text-primary-600"
-        }`}
-        title="설정"
-      >
-        <i className="ri-settings-line mr-1"></i>
-        Settings
-      </button>
+      {isAuthenticated && (
+        <>
+          <button
+            onClick={() => navigate("/history")}
+            className={`px-4 py-2 rounded-lg transition-all duration-200 shadow-md text-sm font-medium ${
+              isActive("/history")
+                ? "bg-primary-600 text-white hover:bg-primary-700"
+                : "bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white hover:text-primary-600"
+            }`}
+            title="히스토리"
+          >
+            <i className="ri-history-line mr-1"></i>
+            History
+          </button>
+          <button
+            onClick={() => navigate("/settings")}
+            className={`px-4 py-2 rounded-lg transition-all duration-200 shadow-md text-sm font-medium ${
+              isActive("/settings")
+                ? "bg-primary-600 text-white hover:bg-primary-700"
+                : "bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white hover:text-primary-600"
+            }`}
+            title="설정"
+          >
+            <i className="ri-settings-line mr-1"></i>
+            Settings
+          </button>
+        </>
+      )}
       <a
         href="https://consure.notion.site/"
         target="_blank"
@@ -100,14 +102,25 @@ export default function TopNavigation() {
         <i className="ri-question-line mr-1"></i>
         Help
       </a>
-      <button
-        onClick={logout}
-        className="px-4 py-2 bg-white/90 backdrop-blur-sm text-gray-700 rounded-lg hover:bg-white hover:text-red-600 transition-all duration-200 shadow-md text-sm font-medium"
-        title="로그아웃"
-      >
-        <i className="ri-logout-box-line mr-1"></i>
-        Logout
-      </button>
+      {isAuthenticated ? (
+        <button
+          onClick={logout}
+          className="px-4 py-2 bg-white/90 backdrop-blur-sm text-gray-700 rounded-lg hover:bg-white hover:text-red-600 transition-all duration-200 shadow-md text-sm font-medium"
+          title="로그아웃"
+        >
+          <i className="ri-logout-box-line mr-1"></i>
+          Logout
+        </button>
+      ) : (
+        <button
+          onClick={() => navigate("/signin")}
+          className="px-4 py-2 bg-white/90 backdrop-blur-sm text-gray-700 rounded-lg hover:bg-white hover:text-primary-600 transition-all duration-200 shadow-md text-sm font-medium"
+          title="로그인"
+        >
+          <i className="ri-login-box-line mr-1"></i>
+          Sign In
+        </button>
+      )}
     </nav>
   );
 }
